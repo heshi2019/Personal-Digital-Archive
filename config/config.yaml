@@ -1,0 +1,12 @@
+# 需要扫描的物理目录（示例，请按实际环境修改）
+scan_paths:
+  - "D:/MyLife"
+  - "D:/音乐"
+
+# 缩略图配置
+thumbnails:
+  enabled: true
+  size: [400, 400]
+
+# 数据库路径
+database_path: "data/mylife.db"
