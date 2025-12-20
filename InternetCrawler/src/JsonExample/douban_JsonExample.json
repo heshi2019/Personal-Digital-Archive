@@ -1,0 +1,64 @@
+[
+    {
+        "mark,想看": [
+            {
+                "movieOne": {
+                    "id": 4460557161,
+                    "title": "剧名",
+                    "directors": [
+                        "导演1",
+                        "导演2"
+                    ],
+                    "Scriptwriter": [
+                        "编剧1",
+                        "编剧2"
+                    ],
+                    "actors": [
+                        "演员1",
+                        "演员2"
+                    ],
+                    "count": "制片国家",
+                    "genres": [
+                        "剧情分类",
+                        "剧情",
+                        "悬疑",
+                        "犯罪"
+                    ],
+                    "countNum": 豆瓣评分人数,
+                    "countIne": 豆瓣评分,
+                    "pubdate": [
+                        "首播时间"
+                    ],
+                    "url": "豆瓣连接",
+                    "vendor_names": [
+                        "哪里能看",
+                        "例：iqiyi"
+                    ],
+                    "cover_url": "封面图",
+                    "honor_infos": [
+                        {
+                            "kind": "tv",
+                            "uri": "douban://douban.com/subject_collection/ECVACWVGI?type=rank&category=movie&rank_type=tv_genre",
+                            "rank": 该榜单排名,
+                            "title": "榜单名"
+                        }
+                    ]
+                },
+                "myComment": {
+                    "create_time": "标记时间"
+                }
+            }
+        ],
+        "doing，在看": [
+                ……
+            ],
+        "done，看过": [
+                ……
+                "myComment": {
+                    "comment": "评价",
+                    "MyValue": 评分,
+                    "create_time": "标记时间"
+                },
+            ]
+
+    }

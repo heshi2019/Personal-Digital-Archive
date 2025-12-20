@@ -1,0 +1,20 @@
+[
+    {
+        "title": "书名",
+        "authors": "作者",
+        "deviceName": "阅读设备",
+        "notenum": 笔记数,
+        "readpercent": "阅读进度",
+        "updateTime": "最后阅读时间",
+        "imageUrl": "封面连接",
+        "annotations": [
+            {
+                "date": "笔记时间",
+                "original_text": "划线",
+                "thoughts": "笔记"
+            },
+            ……
+        ]
+    },
+    ……
+]

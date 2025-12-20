@@ -1,0 +1,45 @@
+{
+  "书名": {
+    "bookId": "CB_5rvEnDEnyA9x6hF6glAT5FjJ",
+    "title": "书名",
+    "classification": "分类",
+    "cover": "封面连接",
+    "name": "作者",
+    "isbn": "ISBN",
+    "readSign": "阅读状态",
+    "briefIntroduction":"简介",
+    "Progress": "阅读进度，数字表示百分比",
+    "ReadDay": "阅读天数",
+    "ReadDayTime": "阅读精确时间",
+    "StartDay": "开始阅读时间",
+    "LastDay": "最后阅读时间",
+    "LatestDay": "最晚阅读时间",
+    "ReadUrl": "阅读链接",
+    "markText": [
+      {
+        "chapterUid": 章节id，对应完整目录中的id,
+        "createTime": "创建时间",
+        "markText": "划线",
+        "content": "笔记",
+        "chapterTitle": "章节名称，与完整目录中的章节名称对应"
+      }
+    ],
+    "完整目录，key为1000000": {
+        "1.0": "扉页",
+        "2.0": "版权页",
+        "3.0": "目录",
+        "4.0": "夜晚的潜水艇",
+        "5.0": "竹峰寺——钥匙和碑的故事",
+        "6.0": "传彩笔",
+        "7.0": "裁云记",
+        "8.0": "酿酒师",
+        "9.0": "《红楼梦》弥撒",
+        "10.0": "李茵的湖",
+        "11.0": "尺波",
+        "12.0": "音乐家",
+        "13.0": "理想国·imaginist",
+        "14.0": "封底"
+      }
+    }
+  }
+}
