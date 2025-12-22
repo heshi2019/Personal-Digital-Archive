@@ -3,7 +3,15 @@ from InternetCrawler.src.Config.config_manager import config
 from InternetCrawler.src.flyme_api import FlymeApi
 from InternetCrawler.src.ImpoetMySQL import import_flyme
 
-def main():
+# 30天对应的Unix毫秒值（固定值）
+THIRTY_DAYS_MS = 2592000000
+
+'''
+        Args: type = all        全量获取数据
+              type = increment  增量获取数据
+                默认全量获取
+'''
+def get_flyme_list(model=None):
     print("开始获取魅族便签笔记")
     flyme_api = FlymeApi()
 
@@ -59,7 +67,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    get_flyme_list()
 
 
 

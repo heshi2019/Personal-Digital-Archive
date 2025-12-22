@@ -1,8 +1,21 @@
+import time
+from datetime import datetime
 from InternetCrawler.src.Config.config_manager import config
 from InternetCrawler.src.douban_api import DouBanApi
 from bs4 import BeautifulSoup
 
-def main():
+
+
+# 30天对应的Unix毫秒值（固定值）
+THIRTY_DAYS_MS = 2592000000
+
+'''
+        Args: type = all        全量获取数据
+              type = increment  增量获取数据
+                默认全量获取
+'''
+def get_douban_list(model=None):
+
     print("开始获取豆瓣电影")
     douban_api = DouBanApi()
 
@@ -17,14 +30,18 @@ def main():
         # 获取数据
         temp = douban_api.fetch_subjects( key)
         # 筛选数据
-        doubanList.append(Episodes_Arrange(temp,key))
+        doubanList.append(Episodes_Arrange(temp,key,model))
 
     config.save("Data_End", "douban.json", doubanList, "txt")
 
 
 
-
-def Episodes_Arrange(EpisodeList,type):
+'''
+        Args: type = all        全量获取数据
+              type = increment  增量获取数据
+                默认全量获取
+'''
+def Episodes_Arrange(EpisodeList,type,model=None):
     errList = []
     Episodes = []
     for item in EpisodeList:
@@ -107,6 +124,20 @@ def Episodes_Arrange(EpisodeList,type):
             # 标记时间
             create_time = item.get("create_time", "")
 
+            # 全量获取
+            if model == "all" or model is None:
+                pass
+            # 增量获取，只获取最近30天内更新的书籍
+            elif model == "increment":
+                # 使用strptime函数，将字符串解析为datetime对象，timestamp()方法将datetime对象转换为时间戳（秒级）
+                LastReadTime = int(datetime.strptime(create_time, '%Y-%m-%d %H:%M:%S').timestamp()* 1000)
+                nowTime = int(time.time() * 1000)
+                if LastReadTime >= nowTime - THIRTY_DAYS_MS:
+                    pass
+                    # 如果数据的最后阅读时间大于当前时间，则增量获取数据
+                else:
+                    continue
+
             myComment = {"comment":comment,"MyValue":MyValue,"create_time":create_time}
 
             temp = {"movieOne":movieOne,"myComment":myComment}
@@ -188,8 +219,10 @@ def get_show_info(html_content):
     return result
 
 
+
 if __name__ == "__main__":
-    main()
+    # 获取数据
+    get_douban_list()
 
 
 

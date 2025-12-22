@@ -38,28 +38,29 @@ class BookRepository:
     def create_tables(self):
         self.db.execute("""
             CREATE TABLE IF NOT EXISTS book_data (
-                type TEXT,
-                bookId TEXT,
-                title TEXT PRIMARY KEY,
-                classification TEXT,
-                market JSON,
-                cover TEXT,
-                name TEXT,
+                type TEXT,                  -- 阅读平台
+                -- 书籍核心字段
+                bookId TEXT,               
+                title TEXT PRIMARY KEY,     -- 书名，不为空，但可能重复
+                classification TEXT,        -- 书籍类型，如小说，科幻等
+                market JSON,                -- 本书章节
+                cover TEXT,                 -- 封面连接
+                name TEXT,                  -- 作者，可能有多个，也就是现在面临的多对多问题
                 isbn TEXT,
-                readSign TEXT,
-                description TEXT,
-                publisher TEXT,
-                progress INTEGER,
-                readDay INTEGER,
-                readDayTime TEXT,
-                startDay TEXT,
-                lastDay TEXT,
-                latestDay TEXT,
-                readUrl TEXT,
-                wordCount INTEGER,
-                deviceName TEXT,
-                notenum INTEGER,
-                updated_at TEXT
+                readSign TEXT,              -- 阅读状态，可能为空（已读完，未读，在读）
+                description TEXT,           -- 书本简介，可能为空
+                publisher TEXT,             -- 出版社，可能为空
+                progress INTEGER,           -- 阅读进度，可能为空	
+                readDay INTEGER,            -- 阅读天数，可能为空
+                readDayTime TEXT,           -- 阅读时长，可能为空
+                startDay TEXT,              -- 开始阅读时间，可能为空
+                lastDay TEXT,               -- 最后阅读时间，可能为空
+                latestDay TEXT,             -- 最晚阅读时间，可能为空    
+                readUrl TEXT,               -- 阅读链接，可能为空
+                wordCount INTEGER,          -- 书籍字数，可能为空
+                deviceName TEXT,            -- 阅读设备，可能为空
+                notenum INTEGER,            -- 笔记数   
+                updated_at TEXT             -- 更新时间字段，SQLite中不支持自动更新ON UPDATE CURRENT_TIMESTAMP
             )
         """)
 
@@ -69,15 +70,16 @@ class BookRepository:
 
         self.db.execute("""
             CREATE TABLE IF NOT EXISTS book_market_data (
-                title TEXT NOT NULL,
-                chapterUid TEXT,
-                chapterTitle TEXT,
-                markText TEXT NOT NULL,
-                content TEXT,
-                createDate TEXT,
-                updateDate TEXT,
-                UNIQUE(markText),
+                title TEXT NOT NULL,            -- 书名
+                chapterUid TEXT,                -- 章节id
+                chapterTitle TEXT,              -- 章节名
+                markText TEXT NOT NULL,         -- 划线内容
+                content TEXT,                   -- 笔记内容
+                createDate TEXT,                -- 创建时间
+                updateDate TEXT,                -- 更新时间 
+                UNIQUE(markText),               -- UNIQUE 唯一性强制（值为NULL时，不算重复，且允许插入NULL），自动创建索引
                 UNIQUE(title, chapterUid, chapterTitle)
+                                                -- UNIQUE可写在列后（列级约束，简单快速），也可以像这样写在建表语句后（表级约束，更灵活），
                 
           
             )

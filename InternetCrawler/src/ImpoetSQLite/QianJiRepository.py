@@ -26,21 +26,21 @@ class QianjiRepository:
         # use double quotes for potentially reserved names (e.g. "key", "from")
         self.db.execute("""
             CREATE TABLE IF NOT EXISTS qianji_data (
-                "key" TEXT PRIMARY KEY,
-                date TEXT,
-                category TEXT,
-                type TEXT,
-                money REAL,
-                currency TEXT,
-                "from" TEXT,
-                target TEXT,
-                asset TEXT,
-                remark TEXT,
-                hasbx INTEGER,
-                username TEXT,
-                billflag TEXT,
-                sourceid TEXT,
-                updated_at TEXT
+                "key" TEXT PRIMARY KEY,         -- 标识，类似uuid
+                date TEXT,                      -- time
+                category TEXT,                  -- 所属分类，三餐、饮料、其它等
+                type TEXT,                      -- 账单类型，支出、收入、转账等    
+                money REAL,                     -- 金额
+                currency TEXT,                  -- 币种，CNY/$
+                "from" TEXT,                    -- 转账类型独有，来源账户，一串数字
+                target TEXT,                    -- 转账类型独有，去向账户，一串数字
+                asset TEXT,                     -- 支出类型独有，支出账户
+                remark TEXT,                    -- 支出备注
+                hasbx INTEGER,                  -- 是否有报销，0/1
+                username TEXT,                  -- 用户名
+                billflag TEXT,                  -- 账单标志，1/0
+                sourceid TEXT,                  -- 来源ID，类似uuid
+                updated_at TEXT                 -- 更新时间
             )
         """)
 

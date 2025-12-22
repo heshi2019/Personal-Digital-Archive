@@ -17,12 +17,12 @@ class FlomoRepository:
     def create_table(self):
         self.db.execute("""
             CREATE TABLE IF NOT EXISTS flomo_data (
-                dataTime TEXT PRIMARY KEY,
-                text TEXT,
-                images JSON,
-                extend1 TEXT,
-                extend2 TEXT,
-                extend3 TEXT,
+                dataTime TEXT PRIMARY KEY,      -- 时间
+                text TEXT,                      -- 文字内容
+                images JSON,                    -- 图片列表，一个列表
+                extend1 TEXT,                   -- 预留扩展字段1
+                extend2 TEXT,                   -- 预留扩展字段2
+                extend3 TEXT,                   -- 预留扩展字段3    
                 updated_at TEXT
             )
         """)

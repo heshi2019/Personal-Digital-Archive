@@ -10,9 +10,9 @@ book_message = None
 # 30天对应的Unix毫秒值（固定值）
 THIRTY_DAYS_MS = 2592000000
 '''
-
         Args: type = all        全量获取数据
               type = increment  增量获取数据
+                默认全量获取
 '''
 
     # 2025.12.08

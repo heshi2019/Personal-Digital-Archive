@@ -1,0 +1,43 @@
+[
+  {
+    "key": "标记，类似uuid",
+    "date": "time",
+    "category": "所属分类，如三餐、饮料、工资等",
+    "type": "账单类型，本json为转账",
+    "money": 金额,
+    "currency": "币种",
+    "from": 来源账户,
+    "target": 目标账户,
+    "hasbx": 是否有报销,
+    "username": 用户名,
+    "billflag": 账单标志,
+    "sourceid": ""
+  },
+  {
+    "key": "",
+    "date": "",
+    "category": "",
+    "type": "支出",
+    "money":
+    "currency": "",
+    "asset": 支出账户,
+    "remark": "备注",
+    "hasbx": 0,
+    "username": null,
+    "billflag": null,
+    "sourceid": ""
+  },
+    {
+    "key": "",
+    "date": "",
+    "category": "",
+    "type": "收入",
+    "money":
+    "currency": "",
+    "asset": ,
+    "remark": "",
+    "hasbx": ,
+    "username": ,
+    "billflag": ,
+    "sourceid": ""
+  },

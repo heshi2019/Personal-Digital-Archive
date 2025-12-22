@@ -4,7 +4,17 @@ from datetime import datetime
 from InternetCrawler.src.Config.config_manager import config
 from InternetCrawler.src.gcores_api import GcoresApi
 
-def main():
+
+# 30天对应的Unix毫秒值（固定值）
+THIRTY_DAYS_MS = 2592000000
+
+'''
+        Args: type = all        全量获取数据
+              type = increment  增量获取数据
+                默认全量获取
+        End文件夹中的Gcores_Categories.json在gcores_api.py中保存
+'''
+def get_gcores_list(model=None):
 
     gcores_api = GcoresApi()
 
@@ -25,6 +35,7 @@ def main():
         followees_count = user.get("attributes",{}).get("followees-count","")
         # 注册时间
         created_at = user.get("attributes",{}).get("created-at","")
+        created_at = datetime.fromisoformat(created_at).strftime('%Y-%m-%d %H:%M:%S')
 
         usersList[key]["location"] = location
         usersList[key]["intro"] = intro
@@ -93,4 +104,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    get_gcores_list()

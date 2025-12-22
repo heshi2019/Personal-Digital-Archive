@@ -18,21 +18,21 @@ class FlymeRepository:
     def create_table(self):
         self.db.execute("""
             CREATE TABLE IF NOT EXISTS flyme_data (
-                uuid TEXT PRIMARY KEY,
-                `group` TEXT,
-                title TEXT,
-                body TEXT,
-                topdate TEXT,
-                firstImg TEXT,
-                firstImgSrc TEXT,
-                fileList TEXT,
-                files TEXT,            -- JSON 字符串
-                lastUpdate TEXT,
-                createTime TEXT,
-                modifyTime TEXT,
-                Extend1 TEXT,
-                Extend2 TEXT,
-                Extend3 TEXT,
+                uuid TEXT PRIMARY KEY,      -- uuid，魅族会传过来这个值
+                `group` TEXT,               -- 分组名
+                title TEXT,                 -- 标题
+                body TEXT,                  -- 内容，这是一个JSON，包含字符和图片快，凑在一起就是一个完整的笔记内容
+                topdate TEXT,               -- 置顶时间
+                firstImg TEXT,              -- 第一张图片，格式为JSON
+                firstImgSrc TEXT,           -- 第一张图片的URL
+                fileList TEXT,              -- 文件列表，一个字符串，一般为图片，每个文件名之间用逗号隔开
+                files TEXT,                 -- 字典，文件名与对应文件URL
+                lastUpdate TEXT,            -- 最后查看本笔记时间
+                createTime TEXT,            -- 创建时间
+                modifyTime TEXT,            -- 最后修改时间 
+                Extend1 TEXT,               -- 扩展字段1
+                Extend2 TEXT,               -- 扩展字段2
+                Extend3 TEXT,               -- 扩展字段3
                 updated_at TEXT
             )
         """)

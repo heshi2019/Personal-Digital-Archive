@@ -17,26 +17,26 @@ class DoubanRepository:
     def create_table(self):
         self.db.execute("""
             CREATE TABLE IF NOT EXISTS douban_data (
-                id INTEGER PRIMARY KEY,
-                title TEXT,
-                type TEXT,
-                directors JSON,
-                scriptwriter JSON,
-                actors JSON,
-                count TEXT,
-                genres JSON,
-                countNum INTEGER,
-                countIne REAL,
-                pubdate TEXT,
-                url TEXT,
-                vendor_names JSON,
-                cover_url TEXT,
-                honor_infos JSON,
+                id INTEGER PRIMARY KEY,         -- 主键，自动递增，豆瓣会给一个id，这里的自增没用上
+                title TEXT,                     -- 剧名
+                type TEXT,                      -- 标签（想看，看过，在看）    
+                directors JSON,                 -- 导演，是一个JSON，可能有多个导演，是一个列表
+                scriptwriter JSON,              -- 编剧，是一个JSON，可能有多个编剧，是一个列表
+                actors JSON,                    -- 演员，是一个JSON，可能有多个演员，是一个列表
+                count TEXT,                     -- 制片国家/地区
+                genres JSON,                    -- 类型，是一个JSON，可能有多个类型，是一个列表["喜剧"，"动作"]
+                countNum INTEGER,               -- 评价人数
+                countIne REAL,                  -- 豆瓣评分，具体数字 9.2
+                pubdate TEXT,                   -- 开播时间
+                url TEXT,                       -- 豆瓣页面url
+                vendor_names JSON,              -- 哪里能看，是一个JSON，可能有多个平台，是一个列表["tencent", "bilibili"]
+                cover_url TEXT,                 -- 封面图连接
+                honor_infos JSON,               -- 所在榜单，一个标准的JSON
                 
                 -- myComment 评论字段
-                myComment_create_time TEXT,
-                myComment_comment TEXT,
-                myComment_MyValue INTEGER,
+                myComment_create_time TEXT,     -- 我的标机时间
+                myComment_comment TEXT,         -- 我的评论内容
+                myComment_MyValue INTEGER,      -- 我的评分
                 
                 updated TEXT
             )

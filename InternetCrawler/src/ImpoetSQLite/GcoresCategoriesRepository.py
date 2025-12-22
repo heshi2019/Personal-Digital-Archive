@@ -18,12 +18,12 @@ class GcoresCategoriesRepository:
     def create_table(self):
         self.db.execute("""
             CREATE TABLE IF NOT EXISTS gcores_categories_data (
-                id INTEGER PRIMARY KEY,
-                name TEXT NOT NULL,
-                image TEXT,
-                count INTEGER NOT NULL,
-                url TEXT,
-                updated_at TEXT
+                id INTEGER PRIMARY KEY,         -- 分类ID
+                name TEXT NOT NULL,             -- 专题名称
+                image TEXT,                     -- 专题图标URL
+                count INTEGER NOT NULL,         -- 订阅数
+                url TEXT,                       -- 专题URL
+                updated_at TEXT                 -- 最后更新时间
             )
         """)
 

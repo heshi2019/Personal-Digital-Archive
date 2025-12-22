@@ -18,16 +18,16 @@ class GcoresUserRepository:
     def create_table(self):
         self.db.execute("""
             CREATE TABLE IF NOT EXISTS gcores_user_data (
-                id INTEGER PRIMARY KEY,
-                name TEXT NOT NULL,
-                image TEXT,
-                url TEXT,
-                location TEXT,
-                intro TEXT,
-                followersCount TEXT,
-                followeesCount TEXT,
-                created_at TEXT NOT NULL,
-                updated_at TEXT
+                id INTEGER PRIMARY KEY,     -- 用户ID，这个ID在机核的库中是递增的
+                name TEXT NOT NULL,         -- 用户名称
+                image TEXT,                 -- 用户头像URL
+                url TEXT,                   -- 用户URL
+                location TEXT,              -- 用户地点
+                intro TEXT,                 -- 用户个人签名
+                followersCount TEXT,        -- 被关注数
+                followeesCount TEXT,        -- 关注数
+                created_at TEXT NOT NULL,   -- 注册时间
+                updated_at TEXT             -- 更新时间
             )
         """)
         self.db.execute("""

@@ -2,6 +2,8 @@ import json
 import re
 import os
 import time
+from datetime import datetime
+
 import requests
 from requests.utils import cookiejar_from_dict
 from retrying import retry
@@ -191,6 +193,7 @@ class GcoresApi:
                 cover = item.get("attributes", {}).get("cover", "")
                 # 发布时间
                 published_at = item.get("attributes", {}).get("published-at", "")
+                published_at = datetime.fromisoformat(published_at).strftime('%Y-%m-%d %H:%M:%S')
                 # 点赞数
                 likes_count = item.get("attributes", {}).get("likes-count", "")
                 # 评论数
@@ -364,10 +367,17 @@ class GcoresApi:
         }
 
         print(f"正在同步:{id} 用户")
-        r = self.session.get(Gcores_USER_URL+str(id), headers=headers, params=params)
 
-        if r.ok:
-            data = r.json().get("data")
-            return data
-        else:
-            raise Exception(f"获取机核用户详情失败： {r}")
+        try:
+
+            r = self.session.get(Gcores_USER_URL+str(id), headers=headers, params=params)
+
+            if r.ok:
+                data = r.json().get("data")
+                return data
+            else:
+                raise Exception(f"获取机核用户详情失败： {r}")
+        except Exception as e:
+            print(f"获取机核用户详情失败： {e}\n"
+                  f"用户ID：{id}\n"
+                  f"返回值：{r.text}")

@@ -18,20 +18,20 @@ class GcoresRadiosRepository:
     def create_table(self):
         self.db.execute("""
             CREATE TABLE IF NOT EXISTS gcores_radios_data (
-                id INTEGER PRIMARY KEY,
-                title TEXT NOT NULL,
-                duration INTEGER NOT NULL,
-                cover TEXT,
-                published_at TEXT NOT NULL,
-                likes_count INTEGER NOT NULL,
-                comments_count INTEGER NOT NULL,
-                category INTEGER NOT NULL,
-                userList TEXT,              -- JSON 字符串
-                desc TEXT,
-                bookmark_count INTEGER NOT NULL,
-                content TEXT,
-                url TEXT NOT NULL,
-                updated_at TEXT
+                id INTEGER PRIMARY KEY,             -- 播客ID
+                title TEXT NOT NULL,                -- 播客标题        
+                duration INTEGER NOT NULL,          -- 播客时长，秒
+                cover TEXT,                         -- 播客封面URL
+                published_at TEXT NOT NULL,         -- 发布时间
+                likes_count INTEGER NOT NULL,       -- 点赞数
+                comments_count INTEGER NOT NULL,    -- 评论数
+                category INTEGER NOT NULL,          -- 专题ID
+                userList TEXT,                      -- 参与节目用户ID列表
+                desc TEXT,                          -- 小标题
+                bookmark_count INTEGER NOT NULL,    -- 收藏数
+                content TEXT,                       -- 播客内容描述
+                url TEXT NOT NULL,                  -- 播客URL
+                updated_at TEXT                     -- 更新时间
             )
         """)
 

@@ -1,0 +1,13 @@
+{
+  "用户id": {
+    "nickname": "名称",
+    "images": "头像",
+    "url": "https://www.gcores.com/users/96260/talks",
+    "location": "地区",
+    "intro": "个人介绍",
+    "followers-count": 被关注数,
+    "followees-count": 关注数,
+    "created-at": "注册时间"
+  }
+  ……
+}
