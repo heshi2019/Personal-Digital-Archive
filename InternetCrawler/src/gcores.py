@@ -1,4 +1,6 @@
 import json
+from datetime import datetime
+
 from InternetCrawler.src.Config.config_manager import config
 from InternetCrawler.src.gcores_api import GcoresApi
 
@@ -54,6 +56,7 @@ def main():
             cover = albumsList.get("attributes", {}).get("cover", "")
             # 发布时间
             published_at = albumsList.get("attributes", {}).get("published-at", "")
+            published_at = datetime.fromisoformat(published_at).strftime('%Y-%m-%d %H:%M:%S')
             # 点赞数
             likes_count = albumsList.get("attributes", {}).get("likes-count", "")
             # 评论数

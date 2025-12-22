@@ -1,0 +1,28 @@
+#DOUBAN:
+##  示例 123456789
+#  user: ""
+#DU:
+#  cookie: ""
+#FLOMO:
+## 示例 r'BasicData\\flomo\\我的.html'
+#  file_path: ""
+#authorization签名和cookie都是用户认证，
+#复制 Cookie：需要先解析 Cookie 中的 Token，再构造Authorization头（或服务器直接从 Cookie 中取 Token）；
+#直接复制Authorization：可直接使用，更便捷。
+
+#  authorization: ""
+#FLYME:
+#  cookie: ""
+#GRCORES:
+#  cookie: ""
+#WEREAD:
+#  cookie: ""
+#ZHANGYUE:
+#  cookie: ""
+#QIANJI:
+#  cookie: ""
+#MYSQL:
+#  host: ""
+#  user: ""
+#  password: ""
+#  database: ""

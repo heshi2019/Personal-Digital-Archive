@@ -7,6 +7,11 @@ from InternetCrawler.src.ImpoetMySQL import import_flomom
 # 坏消息是，这个自动化脚本没法用
 # 好消息是，我有一个脚本用来整理从flomo导出的html文件（BasicData/flomo/flomo_index_analysis.py）
 
+# 2025.12.22
+# 脚本可用，需要从浏览器拿authorization签名而不是cookie
+# 同时，还有一个脚本用来整理从flomo导出的html文件（BasicData/flomo/flomo_index_analysis.py）
+
+
 def main():
     print("开始获取flomo数据")
 

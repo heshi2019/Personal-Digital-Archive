@@ -1,6 +1,11 @@
 # qianji_repository.py
+import json
+import os
+from datetime import datetime
 from typing import Dict, Any, List, Optional
-from src.db import DB
+
+from src.config.config import load_config
+from src.db.DB import DB
 
 
 class QianjiRepository:
@@ -39,33 +44,17 @@ class QianjiRepository:
             )
         """)
 
-    def upsert(self, item: Dict[str, Any]):
-        """
-        Insert or update a qianji record.
-        Accepts item dict with keys corresponding to table columns.
-        Handles basic normalization (types).
-        """
-        # Normalize / ensure keys exist
-        row = {
-            "key": str(item.get("key") or item.get("id") or ""),
-            "date": item.get("date"),
-            "category": item.get("category"),
-            "type": item.get("type"),
-            "money": float(item.get("money")) if item.get("money") not in (None, "") else None,
-            "currency": item.get("currency"),
-            "from": item.get("from"),       # keep original field name
-            "target": item.get("target"),
-            "asset": item.get("asset"),
-            "remark": item.get("remark"),
-            "hasbx": int(item.get("hasbx")) if item.get("hasbx") not in (None, "") else 0,
-            "username": item.get("username"),
-            "billflag": item.get("billflag"),
-            "sourceid": item.get("sourceid"),
-            "updated_at": item.get("updated_at") or item.get("date")
-        }
+        self.db.execute("""
+             CREATE INDEX IF NOT EXISTS idx_qianji_data_key ON qianji_data(key);
+         """)
 
-        # Use named params to bind values
-        # Note: double quotes around "key" and "from" in SQL to avoid keyword issues
+        self.db.execute("""
+             CREATE INDEX IF NOT EXISTS idx_qianji_data_time ON qianji_data(date);
+         """)
+
+
+    def upsert(self, row: Dict[str, Any]):
+
         self.db.execute("""
             INSERT INTO qianji_data (
                 "key", date, category, type, money, currency,
@@ -104,3 +93,85 @@ class QianjiRepository:
 
     def delete(self, key: str):
         self.db.execute('DELETE FROM qianji_data WHERE "key" = ?', (key,))
+
+
+
+
+    def import_Qianji_SQLite(self):
+        print("开始导入 钱迹 数据 --> SQLite")
+
+        self.create_table()
+
+        # 动态生成正确路径
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        data_path = os.path.join(os.path.dirname(current_dir), 'Data_End', 'qianji.json')  # 改为平级目录
+
+        # 读取JSON文件
+        with open(data_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        read_num = 0
+        # 遍历外层数组
+        for item in data:
+
+            # 构建插入数据
+            insert_data = (
+                item['key'],
+                item['date'],
+                item['category'],
+                item['type'],
+                float(item['money']),
+                item['currency'],
+            )
+
+            if item['type'] == "收入" or item["type"] == "支出":
+                insert_data += (
+                    None,
+                    None,
+                    item.get("asset", ""),
+                    item.get("remark", ""),
+
+                )
+            elif item["type"] == "转账":
+                insert_data += (
+                    item['from'],
+                    item['target'],
+                    None,
+                    None,
+
+                )
+            elif "债务" in item["type"]:
+                insert_data += (
+                    item['from'],
+                    None,
+                    item.get("asset", ""),
+                    item.get("remark", ""),
+                )
+            else:
+                print(f"未分类数据：{item}")
+
+            insert_data += (
+                int(item['hasbx']),
+                item['username'],
+                item['billflag'],
+                item['sourceid'],
+                datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            )
+
+
+            read_num +=1
+
+            print(f"已导入{read_num}条")
+            self.upsert(insert_data)
+
+
+
+
+# --- 【全新】用于测试“单次运动记录”功能的测试用例 ---
+if __name__ == '__main__':
+    config = load_config()
+    db_instance = DB(config.database.path)
+
+    repository = QianjiRepository(db_instance)
+    repository.import_Qianji_SQLite()
+

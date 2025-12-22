@@ -33,7 +33,7 @@ class FlomoApi:
 
         latest_updated_at = 1
 
-        user_authorization = config.get_key("FLOMO", "cookie")
+        user_authorization = config.get_key("FLOMO", "authorization")
 
         memo_list = []
         while True:

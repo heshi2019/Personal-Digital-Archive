@@ -1,6 +1,10 @@
 # gcores_radios_repository.py
+import os
+from datetime import datetime
 from typing import Dict
-from src.db import DB
+
+from src.config.config import load_config
+from src.db.DB import DB
 import json
 
 
@@ -31,27 +35,18 @@ class GcoresRadiosRepository:
             )
         """)
 
+        self.db.execute("""
+             CREATE INDEX IF NOT EXISTS idx_gcores_radios_data_title ON gcores_radios_data(title);
+         """)
+
+        self.db.execute("""
+             CREATE INDEX IF NOT EXISTS idx_gcores_radios_data_time ON gcores_radios_data(published_at);
+         """)
+
     # ---------------------------------------------------
     # 插入或更新（SQLite Upsert）
     # ---------------------------------------------------
-    def upsert(self, item: Dict):
-
-        row = {
-            "id": int(item["id"]),
-            "title": item["title"],
-            "duration": int(item["duration"]),
-            "cover": item.get("cover"),
-            "published_at": item["published_at"],
-            "likes_count": int(item["likes_count"]),
-            "comments_count": int(item["comments_count"]),
-            "category": int((item.get("category") or {}).get("id", 99999)),
-            "userList": json.dumps(item.get("userList", [])),
-            "desc": item.get("desc"),
-            "bookmark_count": int(item["bookmarks_count"]),
-            "content": item.get("content"),
-            "url": item["url"],
-            "updated_at": item.get("published_at")
-        }
+    def upsert(self, row: Dict):
 
         self.db.execute("""
             INSERT INTO gcores_radios_data (
@@ -97,3 +92,53 @@ class GcoresRadiosRepository:
     # ---------------------------------------------------
     def delete(self, id: int):
         self.db.execute("DELETE FROM gcores_radios_data WHERE id=?", (id,))
+
+
+
+    def import_GcoresRadios_SQLite(self):
+        print("开始导入 机核电台 数据 --> SQLite")
+
+        self.create_table()
+
+        # 动态生成正确路径
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        data_path = os.path.join(os.path.dirname(current_dir), 'Data_End', 'Gcores_Radios.json')  # 改为平级目录
+
+        # 读取JSON文件
+        with open(data_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        read_num = 0
+        # 遍历外层数组
+        for value in data:
+            # 构建插入数据
+            insert_data = (
+                int(value["id"]),
+                value['title'],
+                int(value['duration']),
+                value["cover"],
+                value['published_at'],
+                int(value['likes_count']),
+                int(value['comments_count']),
+                int((value.get("category") or {}).get("id",99999)),
+                json.dumps(value['userList']),
+                value['desc'],
+                int(value['bookmarks_count']),
+                value['content'],
+                value['url'],
+                datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            )
+            read_num +=1
+
+            print(f"已导入{read_num}条")
+            self.upsert(insert_data)
+
+
+# --- 【全新】用于测试“单次运动记录”功能的测试用例 ---
+if __name__ == '__main__':
+    config = load_config()
+    db_instance = DB(config.database.path)
+
+    repository = GcoresRadiosRepository(db_instance)
+    repository.import_GcoresRadios_SQLite()
+

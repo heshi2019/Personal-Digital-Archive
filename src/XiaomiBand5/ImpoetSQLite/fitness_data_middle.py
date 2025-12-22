@@ -150,6 +150,10 @@ class fitness_data_middle:
                 );
                 """)
 
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_middle_main_time_key ON fitness_data_middle_main(time, key);
+            """)
+
             # 子项目表
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS fitness_data_middle_ext (

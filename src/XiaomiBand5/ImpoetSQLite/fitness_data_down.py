@@ -122,6 +122,15 @@ class fitness_data_down:
                 UNIQUE (Uid, Time, Key)
             );
             """)
+
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_down_main_time_key ON fitness_data_down_main(Time, Key);
+            """)
+
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_down_main_time ON fitness_data_down_main(Time);
+            """)
+
             # 从表: nested_items
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS fitness_data_down_ext (

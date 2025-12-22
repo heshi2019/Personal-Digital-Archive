@@ -1,7 +1,12 @@
 # 需要扫描的物理目录（示例，请按实际环境修改）
 scan_paths:
-  - "D:/MyLife"
   - "D:/音乐"
+  - "D:/MyLife"
+
+
+skip_paths:
+  - "D:/MyLife/flomo*"
+  - "D:/MyLife/QQ空间备份_1586470758"
 
 # 缩略图配置
 thumbnails:
@@ -9,4 +14,5 @@ thumbnails:
   size: [400, 400]
 
 # 数据库路径
-database_path: "data/mylife.db"
+database:
+  path: "data/mylife.db"

@@ -1,3 +1,5 @@
+import time
+
 import pendulum
 from InternetCrawler.src.Config.config_manager import config
 from InternetCrawler.src.weread_api import WeReadApi
@@ -5,10 +7,18 @@ from InternetCrawler.src.weread_api import WeReadApi
 # 所有数据信息，全局变量
 book_message = None
 
+# 30天对应的Unix毫秒值（固定值）
+THIRTY_DAYS_MS = 2592000000
+'''
+
+        Args: type = all        全量获取数据
+              type = increment  增量获取数据
+'''
+
     # 2025.12.08
     # 坏消息是，这个接口已经不能用
     # 好消息是，我也不用微信读书很久了
-def main():
+def get_weread_book_list(model=None):
     # 清空
     global book_message
     book_message = {}
@@ -28,6 +38,7 @@ def main():
 
     if books != None:
         for index, book in enumerate(books):
+
 
             title = book.get("book").get("title")
 
@@ -64,6 +75,23 @@ def main():
 
             # 章节阅读信息
             readInfo = we_read_api.get_read_info(bookId)
+
+
+            # 全量获取
+            if model == "all" or model is None:
+                pass
+
+            # 增量获取，只获取最近30天内更新的书籍
+            elif model == "increment":
+                LastReadTime = readInfo.get("readDetail").get("lastReadingDate")
+                nowTime = int(time.time() * 1000)
+                if LastReadTime >= nowTime - THIRTY_DAYS_MS:
+                    pass
+                    # 如果数据的最后阅读时间大于当前时间，则增量获取数据
+                else:
+                    continue
+
+
 
             # 阅读状态
             readSign = readInfo.get("markedStatus")
@@ -119,7 +147,7 @@ def main():
             reviews = we_read_api.get_review_list(bookId)
 
             # 提取章节及划线，笔记信息
-            MyExtendList,MyExtendList1=MyExtend(chapter,bookmark_list,reviews)
+            MyExtendList,MyExtendList1=MyExtend(chapter,bookmark_list,reviews,model)
 
             # 章节，划线，笔记信息整合
             assemble_BookMessage(MyExtendList,MyExtendList1,BookInformation)
@@ -129,7 +157,7 @@ def main():
         print("微信读书数据解析完毕")
 
 # 参数信息 1.章节信息；2.划线信息；3.笔记信息
-def MyExtend(get_chapter_info, get_bookmark_list, get_review_list):
+def MyExtend(get_chapter_info, get_bookmark_list, get_review_list, model=None):
 
     # 尝试重新遍历，在每次遍历的时候，使用两个数字控制章节id a+b，a为整数位，b为小数位，如遇到了anchors锚点，
     # 则整数位+1，开始递增小数位，直到下次遇见anchors锚点，整数位+1，小数位重置为0.0,。如未遇到anchors锚点

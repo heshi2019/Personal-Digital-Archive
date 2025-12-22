@@ -1,8 +1,18 @@
+import time
 from datetime import datetime
 from InternetCrawler.src.Config.config_manager import config
 from InternetCrawler.src.du_api import DUApi
 
-def main():
+
+# 30天对应的Unix毫秒值（固定值）
+THIRTY_DAYS_MS = 2592000000
+'''
+
+        Args: type = all        全量获取数据
+              type = increment  增量获取数据
+'''
+def get_du_book_list(model=None):
+
     du_api = DUApi()
     print("开始获取网易蜗牛读书信息")
 
@@ -14,6 +24,22 @@ def main():
 
     if books!= None:
         for index, book in enumerate(books):
+
+
+            # 全量获取
+            if model == "all" or model is None:
+                pass
+
+            # 增量获取，只获取最近30天内更新的书籍
+            elif model == "increment":
+                LastReadTime = book.get("book").get("updateTime")
+                nowTime = int(time.time() * 1000)
+                if LastReadTime >= nowTime - THIRTY_DAYS_MS:
+                    pass
+                    # 如果数据的最后阅读时间大于当前时间，则增量获取数据
+                else:
+                    continue
+
 
             # 书名
             title = book.get("book").get("title")
@@ -69,18 +95,31 @@ def main():
     # 获取划线信息
     Annotations = du_api.get_Annotations()
     # 整合书籍，划线，章节信息
-    temp = MyExtend(BookList,Annotations, Chapter)
+    temp = MyExtend(BookList,Annotations, Chapter,model)
 
     # 保存数据
     config.save("Data_End", "du.json", temp, "txt")
 
 
-def MyExtend(BookList,Annotations, Chapter):
+def MyExtend(BookList,Annotations, Chapter,model=None):
 
     # 划线信息
     BookAn = {}
 
     for BookInformation in Annotations.get("updated"):
+
+        # 增量获取，只获取最近30天内更新的书籍
+        if model == "increment":
+            LastReadTime = BookInformation.get("bookNote").get("uploadTime")
+            nowTime = int(time.time() * 1000)
+            if LastReadTime >= nowTime - THIRTY_DAYS_MS:
+                pass
+                # 如果数据的最后阅读时间大于当前时间，则增量获取数据
+            else:
+                continue
+
+
+
         # 这两个数字需要转换为字符串，否则再次提取时会报错
         bookId = str(BookInformation.get("bookNote").get("bookId"))
         # 章节id
@@ -184,4 +223,5 @@ def MyExtend(BookList,Annotations, Chapter):
     return BookList
 
 if __name__ == "__main__":
-    main()
+    # 增量获取数据
+    get_du_book_list('increment')

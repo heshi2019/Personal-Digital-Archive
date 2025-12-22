@@ -1,6 +1,10 @@
 # flyme_repository.py
+import os
+from datetime import datetime
 from typing import Dict
-from src.db import DB
+
+from src.config.config import load_config
+from src.db.DB import DB
 import json
 
 
@@ -33,28 +37,14 @@ class FlymeRepository:
             )
         """)
 
+        self.db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_flyme_data_createTime ON flyme_data(createTime);
+        """)
+
     # ---------------------------------------------------
     # 插入或更新（SQLite 写法）
     # ---------------------------------------------------
-    def upsert(self, item: Dict):
-        row = {
-            "uuid": item.get("uuid"),
-            "group": item.get("groupStatus"),
-            "title": item.get("title"),
-            "body": item.get("body"),
-            "topdate": item.get("topdate"),
-            "firstImg": item.get("firstImg"),
-            "firstImgSrc": item.get("firstImgSrc"),
-            "fileList": item.get("fileList"),
-            "files": json.dumps(item.get("files", [])),
-            "lastUpdate": item.get("lastUpdate"),
-            "createTime": item.get("createTime"),
-            "modifyTime": item.get("modifyTime"),
-            "Extend1": None,
-            "Extend2": None,
-            "Extend3": None,
-            "updated_at": item.get("lastUpdate")
-        }
+    def upsert(self, row: Dict):
 
         self.db.execute("""
             INSERT INTO flyme_data (
@@ -102,3 +92,57 @@ class FlymeRepository:
     # ---------------------------------------------------
     def delete(self, uuid: str):
         self.db.execute("DELETE FROM flyme_data WHERE uuid=?", (uuid,))
+
+
+    def import_flyme_SQLite(self):
+        print("开始导入 flyme 数据 --> SQLite")
+
+        self.create_table()
+
+        # 动态生成正确路径
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        data_path = os.path.join(os.path.dirname(current_dir), 'Data_End', 'flyme.json')  # 改为平级目录
+
+        # 读取JSON文件
+        with open(data_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        read_num = 0
+
+        # 遍历外层数组
+        for item in data:
+
+            # 构建插入数据
+            insert_data = (
+                item["uuid"],
+                item["groupStatus"],
+                item["title"],
+                item["body"],
+                item["topdate"],
+                item["firstImg"],
+                item["firstImgSrc"],
+                item["fileList"],
+                json.dumps(item["files"]),
+                item["lastUpdate"],
+                item["createTime"],
+                item["modifyTime"],
+                None,
+                None,
+                None,
+                datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            )
+
+            read_num +=1
+
+            print(f"已导入{read_num}条")
+            self.upsert(insert_data)
+
+
+# --- 【全新】用于测试“单次运动记录”功能的测试用例 ---
+if __name__ == '__main__':
+    config = load_config()
+    db_instance = DB(config.database.path)
+
+    repository = FlymeRepository(db_instance)
+    repository.import_flyme_SQLite()
+
