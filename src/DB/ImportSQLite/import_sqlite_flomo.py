@@ -1,0 +1,91 @@
+# flomo_repository.py
+import os
+from datetime import datetime
+import json
+
+from src.DB.SQLite_util import SQLite_util
+from src.config.configClass import app_config
+
+
+class FlomoRepository:
+    def __init__(self, db: SQLite_util):
+        self.db = db
+
+    # ---------------------------------------------------
+    # 创建表
+    # ---------------------------------------------------
+    def create_table(self):
+        self.db.execute("""
+            CREATE TABLE IF NOT EXISTS flomo_data (
+                dataTime TEXT PRIMARY KEY,      -- 时间
+                text TEXT,                      -- 文字内容
+                images JSON,                    -- 图片列表，一个列表
+                extend1 TEXT,                   -- 预留扩展字段1
+                extend2 TEXT,                   -- 预留扩展字段2
+                extend3 TEXT,                   -- 预留扩展字段3    
+                updated_at TEXT
+            )
+        """)
+
+        self.db.execute("""
+            CREATE INDEX IF NOT EXISTS idx_flomo_data_time ON flomo_data(dataTime);
+        """)
+
+    # ---------------------------------------------------
+    # 插入或更新
+    # ---------------------------------------------------
+    def upsert(self, row: dict):
+        self.db.execute("""
+            INSERT INTO flomo_data (
+                dataTime, text, images, extend1, extend2, extend3, updated_at
+            ) VALUES (
+                :dataTime, :text, :images, :extend1, :extend2, :extend3, :updated_at
+            )
+            ON CONFLICT(dataTime) DO UPDATE SET
+                text=excluded.text,
+                images=excluded.images,
+                extend1=excluded.extend1,
+                extend2=excluded.extend2,
+                extend3=excluded.extend3,
+                updated_at=excluded.updated_at
+        """, row)
+
+
+
+    def import_flomo_SQLite(self):
+        print("开始导入 flomo 数据 --> SQLite")
+
+        self.create_table()
+
+        data_path = os.path.join(app_config.Data_End, 'flomo.json')
+
+        # 读取JSON文件
+        with open(data_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        read_num = 0
+        # 遍历外层数组
+        for item in data:
+            # 构建插入数据
+            insert_data = (
+                item["time"],
+                item["content"],
+                json.dumps(item["files"]),
+                None,
+                None,
+                None,
+                datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            )
+            read_num +=1
+
+            print(f"导入{read_num}条: {item["time"]}")
+            self.upsert(insert_data)
+
+
+# --- 【全新】用于测试“单次运动记录”功能的测试用例 ---
+if __name__ == '__main__':
+    db_instance = SQLite_util(app_config.SQLitePath)
+
+    repository = FlomoRepository(db_instance)
+    repository.import_flomo_SQLite()
+

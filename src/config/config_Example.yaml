@@ -1,0 +1,49 @@
+DOUBAN:
+#  示例 123456789
+  user: ""
+DU:
+  cookie: ""
+FLOMO:
+# 示例 r'BasicData\\flomo\\我的.html'
+  file_path: ""、
+    authorization: ""
+#authorization签名和cookie都是用户认证，
+#复制 Cookie：需要先解析 Cookie 中的 Token，再构造Authorization头（或服务器直接从 Cookie 中取 Token）；
+#直接复制Authorization：可直接使用，更便捷。
+
+FLYME:
+  cookie: ""
+GRCORES:
+  cookie: ""
+WEREAD:
+  cookie: ""
+ZHANGYUE:
+  cookie: ""
+QIANJI:
+  cookie: ""
+
+
+# 需要扫描的物理目录（示例，请按实际环境修改）
+scan_paths:
+  - "D:/音乐"
+  - "D:/影音"
+
+# 跳过路径 *模糊匹配
+skip_paths:
+  - "D:/音乐/海阔*"
+  - "D:/影音/学习资料"
+
+# 缩略图配置
+thumbnails:
+  enabled: true
+  size: [400, 400]
+
+MYSQL:
+  host: ""
+  user: ""
+  password: ""
+  database: ""
+
+# SQLite数据库保存路径
+SQLite:
+  path: "data/SQLite.db"
