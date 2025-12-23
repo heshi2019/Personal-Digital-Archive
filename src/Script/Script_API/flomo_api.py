@@ -78,7 +78,7 @@ class FlomoApi:
                 print(f"flomo数据返回结束，目前步长: {latest_updated_at}")
                 break
 
-        app_Utils.save(app_config.data_star, "Flomo_Data.json", memo_list, "txt")
+        app_Utils.save(app_config.Data_Star, "Flomo_Data.json", memo_list, "txt")
 
         return memo_list
 

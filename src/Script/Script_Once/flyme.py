@@ -63,7 +63,7 @@ def get_flyme_list(model=None):
 
     # 图片下载部分
     for index,(key,value) in enumerate(imgList.items()):
-        print(f"开始下载图片，一共{len(imgList)},当前是第{index+1}张")
+        print(f"开始下载图片，共{len(imgList)},当前是第{index+1}张")
         flyme_api.get_FirstImg(imgList.get(key))
 
 

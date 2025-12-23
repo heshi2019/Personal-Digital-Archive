@@ -2,6 +2,7 @@ import json
 import os
 
 
+
 class Utils:
     # 单例实例
     _instance = None
@@ -29,5 +30,9 @@ class Utils:
                 f.write(json.dumps(data, indent=4, ensure_ascii=False))
 
 
+
 # 创建全局单例实例
 app_Utils = Utils()
+
+
+

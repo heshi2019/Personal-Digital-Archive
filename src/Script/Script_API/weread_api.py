@@ -61,7 +61,7 @@ class WeReadApi:
             books = data.get("books")
             books.sort(key=lambda x: x["sort"])
 
-            app_Utils.save(app_config.data_star, "Weread_get_notebooklist.json", r.json(), "txt")
+            app_Utils.save(app_config.Data_Star, "Weread_get_notebooklist.json", r.json(), "txt")
 
             return books
         else:
@@ -83,7 +83,7 @@ class WeReadApi:
         ):
             update = r.json()["data"][0]["updated"]
 
-            app_Utils.save(app_config.data_star, "Weread_get_chapter_info.json",
+            app_Utils.save(app_config.Data_Star, "Weread_get_chapter_info.json",
                         {item["chapterUid"]: item for item in update}, "txt")
 
             return {item["chapterUid"]: item for item in update}
@@ -98,7 +98,7 @@ class WeReadApi:
         r = self.session.get(WEREAD_BOOKMARKLIST_URL, params=params)
         if r.ok:
 
-            app_Utils.save(app_config.data_star, "Weread_bookmark.json", r.json(), "txt")
+            app_Utils.save(app_config.Data_Star, "Weread_bookmark.json", r.json(), "txt")
 
             bookmarks = r.json().get("updated")
             return bookmarks

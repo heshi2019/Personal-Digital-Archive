@@ -25,7 +25,7 @@ class FlymeApi:
 
     def get_cookie(self):
 
-        cookie = app_config.flyme_cookie
+        cookie = app_config.flyme.cookie
         if cookie is None:
             cookie = os.getenv("FLYME_COOKIE")
 
@@ -62,7 +62,7 @@ class FlymeApi:
         r = self.session.post(Flyme_Classification_URL,headers=headers)
         print(r.json())
         if r.ok and r.json().get("returnCode",302) != 302:
-            app_Utils.save(app_config.data_star, "Flyme_Classification.json", r.json().get("returnValue",{}).get("data"), "txt")
+            app_Utils.save(app_config.Data_Star, "Flyme_Classification.json", r.json().get("returnValue",{}).get("data"), "txt")
         else:
             errcode = r.json()
             raise Exception(f"获取分类信息错误，错误如下： {errcode}")
@@ -86,7 +86,7 @@ class FlymeApi:
         r = self.session.post(Flyme_data_URL,headers=headers, params=params)
 
         if r.ok and r.json().get("returnValue",{}).get("content",None) is not None:
-            app_Utils.save(app_config.data_star, "Flyme_data.json", r.json().get("returnValue",{}).get("content"), "txt")
+            app_Utils.save(app_config.Data_Star, "Flyme_data.json", r.json().get("returnValue",{}).get("content"), "txt")
         else:
             errcode = r.json()
             raise Exception(f"获取笔记信息错误，错误如下： {errcode}")
@@ -117,7 +117,7 @@ class FlymeApi:
             # 提取倒数第二个路径段作为文件名（示例URL结构：.../filename/uuid）
             filename = path_parts[-2] if len(path_parts) >= 2 else "unknown"
 
-            save_path = os.path.join("../../data/FlymeImages", filename)
+            save_path = os.path.join(app_config.flyme.images_path, filename)
             os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
             with open(save_path, 'wb') as f:

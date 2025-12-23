@@ -13,6 +13,7 @@ class MYSQLConfig:
 @dataclass
 class FlomoConfig:
     file_path: str
+    file_name: str
     authorization: str
 
 @dataclass
@@ -21,7 +22,15 @@ class ThumbnailConfig:
     enabled: bool
     path: str
 
+@dataclass
+class FlymeConfig:
+    cookie: str
+    path: str
 
+@dataclass
+class QianjiConfig:
+    cookie: str
+    path: str
 
 @dataclass(init=False)  # 关键：禁用自动生成的__init__
 # @dataclass装饰的类会自动生成__init__方法，该方法要求必须传入所有字段的参数
@@ -31,12 +40,14 @@ class AppConfig:
 
     douban_username: str
     Grcores:str
+    MiSmartBand5: str
+    Decompress: str
 
-    flyme_cookie: str
+    flyme: FlymeConfig
     du_cookie: str
     weread_cookie: str
     zhangyue_cookie: str
-    qianji_cookie: str
+    qianji: QianjiConfig
 
     MySQL: MYSQLConfig
     Flomo: FlomoConfig
@@ -83,22 +94,38 @@ class AppConfig:
             if not thumbnails_path.is_absolute():
                 data["thumbnails"]["path"] = str(current_file.parent.parent / thumbnails_path)
 
-            flomo_file_path = Path(data["FLOMO"]["file_path"])
+            flomo_file_path = Path(data["Flomo"]["file_path"])
             if not flomo_file_path.is_absolute():
-                data["FLOMO"]["file_path"] = str(current_file.parent.parent / flomo_file_path)
+                data["Flomo"]["file_path"] = str(current_file.parent.parent / flomo_file_path)
+
+            flyme_images_path = Path(data["Flyme"]["images_path"])
+            if not flyme_images_path.is_absolute():
+                data["Flyme"]["images_path"] = str(current_file.parent.parent / flyme_images_path)
+
+            MiSmartBand5_path = Path(data["MiSmartBand5"]["path"])
+            if not MiSmartBand5_path.is_absolute():
+                data["MiSmartBand5"]["path"] = str(current_file.parent.parent / MiSmartBand5_path)
+
+            Decompress_path = Path(data["Decompress"]["path"])
+            if not Decompress_path.is_absolute():
+                data["Decompress"]["path"] = str(current_file.parent.parent / Decompress_path)
+
+            qianji_path = Path(data["Qianji"]["path"])
+            if not qianji_path.is_absolute():
+                data["Qianji"]["path"] = str(current_file.parent.parent / qianji_path)
 
 
-
-
-            instance.douban_username = data["DOUBAN"]["user"]
-            instance.Grcores = data["GRCORES"]["cookie"]
-            instance.flyme_cookie = data["FLYME"]["cookie"]
-            instance.du_cookie = data["DU"]["cookie"]
-            instance.weread_cookie = data["WEREAD"]["cookie"]
-            instance.zhangyue_cookie = data["ZHANGYUE"]["cookie"]
-            instance.qianji_cookie = data["QIANJI"]["cookie"]
+            instance.douban_username = data["Douban"]["user"]
+            instance.Grcores = data["Grcores"]["cookie"]
+            instance.Decompress = data["Decompress"]["path"]
+            instance.MiSmartBand5 = data["MiSmartBand5"]["path"]
+            instance.flyme = FlymeConfig(**data["Flyme"])
+            instance.du_cookie = data["Du"]["cookie"]
+            instance.weread_cookie = data["Weread"]["cookie"]
+            instance.zhangyue_cookie = data["Zhangyue"]["cookie"]
+            instance.qianji = QianjiConfig(**data["Qianji"])
             instance.MySQL = MYSQLConfig(**data["MySQL"])
-            instance.Flomo = FlomoConfig(**data["FLOMO"])
+            instance.Flomo = FlomoConfig(**data["Flomo"])
             instance.scan_paths = data["scan_paths"]
             instance.skip_paths = data["skip_paths"]
             instance.thumbnail = ThumbnailConfig(**data["thumbnails"])

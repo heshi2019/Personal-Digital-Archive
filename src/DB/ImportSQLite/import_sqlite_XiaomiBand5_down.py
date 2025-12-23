@@ -186,125 +186,120 @@ class fitness_data_down:
                     cursor.executemany("INSERT INTO fitness_data_down_ext (main_record_id, item_json) VALUES (?, ?)",
                                       items_to_insert)
 
+    def import_XiaomiBand5_down(self):
+        start = time.perf_counter()
+
+        # db_instance = SQLite_util(app_config.SQLitePath)
+        try:
+            # self = fitness_data_down(db_instance)
+            self.create_fitness_data_down_main()
+
+            CSV_FILENAME_PATTERN = '*_MiFitness_hlth_center_fitness_data.csv'
+
+            search_path = os.path.join(app_config.MiSmartBand5, CSV_FILENAME_PATTERN)
+            files_found = glob.glob(search_path)
+
+            if not files_found:
+                print(f"错误：在文件夹 '{app_config.MiSmartBand5}' 中没有找到匹配 '{CSV_FILENAME_PATTERN}' 的文件。")
+            else:
+                source_file = files_found[0]
+                print(f"成功找到源文件：'{source_file}'，开始处理...")
+
+                # 使用批处理，每次处理10000条记录，在连续处理35万条记录后速度大幅下降
+                BATCH_SIZE = 1  # 批处理大小，可以根据系统性能调整
+                batch = []
+
+                with (open(source_file, mode='r', encoding='utf-8') as csvfile):
+                    reader = csv.DictReader(csvfile)
+                    total_rows = 0
+                    processed_rows = 0
+
+                    # 目前效率有点低，连续处理35万行数据后数据库速度明显下降，
+                    # 可能是因为数据库事务提交的频率 too many times
+
+                    # 第一步：跳过前skip_lines行
+                    # for _ in range(1580000):
+                    #     try:
+                    #         # 每次调用next()跳过一行，直到跳过指定行数
+                    #         next(reader)
+                    #         print(f"跳过 1580000 行")
+                    #     except StopIteration:
+                    #         # 若文件行数不足，直接退出（避免报错）
+                    #         print(f"文件行数不足 1580000 行")
+                    #         break
+
+                    for row in reader:
+                        total_rows += 1
+                        try:
+                            main_record = {
+                                'Uid': int(row['Uid']), 'Sid': row['Sid'],
+                                'Key': row['Key'], 'Time': int(row['Time']), 'UpdateTime': int(row['UpdateTime'])
+                            }
+
+
+                            value_json = json.loads(row['Value'])
+                            main_record.update(value_json)
+
+                            fitness_data_down_ext = None
+
+
+                            if 'time' in main_record:
+                                # value的json中会有time字段，和通用字段重合了，这里直接去掉
+                                main_record.pop('time')
+                            if 'total_score' in main_record:
+                                # 睡眠数据中，可能会有睡眠评分数据，去掉
+                                main_record.pop('total_score')
+                            if 'friendly_score' in main_record:
+                                main_record.pop('friendly_score')
+
+                            if 'items' in main_record:
+                                fitness_data_down_ext = main_record.pop('items')
+
+
+                            batch.append((main_record, fitness_data_down_ext))
+
+                            # 当批处理列表达到设定大小时，批量保存
+                            if len(batch) >= BATCH_SIZE:
+                                self.save_batch_records(batch)
+                                processed_rows += len(batch)
+                                batch = []  # 清空批处理列表
+                                print(f"已处理 {processed_rows}/{total_rows} 行数据")
+
+                        except (json.JSONDecodeError, KeyError, ValueError) as e:
+                            print(f"main_record2: {main_record}")
+                            print(f"value_json: {value_json}")
+                            print(f"警告：处理第 {total_rows} 行时数据格式有误，已跳过。错误: {e}")
+                        except Exception as e:
+                            print(f"main_record2: {main_record}")
+                            print(f"value_json: {value_json}")
+                            print(f"警告：处理第 {total_rows} 行时发生未知错误：{e}，已跳过。")
+
+                    # 处理剩余的记录
+                    if batch:
+                        self.save_batch_records(batch)
+                        processed_rows += len(batch)
+                        print(f"已处理 {processed_rows}/{total_rows} 行数据")
+
+                print(f"\n处理完成！共扫描 {total_rows} 行，成功处理并存入数据库 {processed_rows} 行。")
+
+        except sqlite3.Error as e:
+            print(f"\n数据库操作失败: {e}")
+        except FileNotFoundError:
+            print(f"错误：指定的文件夹路径不存在 '{app_config.MiSmartBand5}'")
+        except Exception as e:
+            print(f"\n发生了未预料的错误: {e}")
+        finally:
+            # 这里的 hasattr(db_instance, 'conn') 是一个安全检查
+            if hasattr(self.db, 'conn') and self.db.conn:
+                end = time.perf_counter()
+                print(f"执行时间：{(end - start) :.6f} 秒")  # 转换为毫秒显示，更易读
+                self.db.close()
+                print("数据库连接已关闭。")
 
 # --- 【全新】用于测试“单次运动记录”功能的测试用例 ---
 if __name__ == '__main__':
 
-    start = time.perf_counter()
-
     db_instance = SQLite_util(app_config.SQLitePath)
-    try:
-        repo = fitness_data_down(db_instance)
-        repo.create_fitness_data_down_main()
 
-        CSV_FILENAME_PATTERN = '*_MiFitness_hlth_center_fitness_data.csv'
-        DATA_FOLDER_PATH = "C:/Users/28484/Desktop/20251209_1311597473_MiFitness_c3_data_copy (1)"
-
-        search_path = os.path.join(DATA_FOLDER_PATH, CSV_FILENAME_PATTERN)
-        files_found = glob.glob(search_path)
-
-        if not files_found:
-            print(f"错误：在文件夹 '{DATA_FOLDER_PATH}' 中没有找到匹配 '{CSV_FILENAME_PATTERN}' 的文件。")
-        else:
-            source_file = files_found[0]
-            print(f"成功找到源文件：'{source_file}'，开始处理...")
-
-            # 使用批处理，每次处理10000条记录，在连续处理35万条记录后速度大幅下降
-            BATCH_SIZE = 1  # 批处理大小，可以根据系统性能调整
-            batch = []
-            
-            with (open(source_file, mode='r', encoding='utf-8') as csvfile):
-                reader = csv.DictReader(csvfile)
-                total_rows = 0
-                processed_rows = 0
-
-                # 目前效率有点低，连续处理35万行数据后数据库速度明显下降，
-                # 可能是因为数据库事务提交的频率 too many times
-
-                # 第一步：跳过前skip_lines行
-                # for _ in range(1580000):
-                #     try:
-                #         # 每次调用next()跳过一行，直到跳过指定行数
-                #         next(reader)
-                #         print(f"跳过 1580000 行")
-                #     except StopIteration:
-                #         # 若文件行数不足，直接退出（避免报错）
-                #         print(f"文件行数不足 1580000 行")
-                #         break
-
-                for row in reader:
-                    total_rows += 1
-                    try:
-                        main_record = {
-                            'Uid': int(row['Uid']), 'Sid': row['Sid'],
-                            'Key': row['Key'], 'Time': int(row['Time']), 'UpdateTime': int(row['UpdateTime'])
-                        }
-
-
-                        value_json = json.loads(row['Value'])
-                        main_record.update(value_json)
-                        #
-                        # if main_record['Key'] == 'heart_rate':
-                        #     if main_record.get('latest_hr', None) is not None:
-                        #         # 当key为heart_rate时，value的json字段中有一个嵌套字段latest_hr，记录的是当天最后一次心率，这里直接去掉
-                        #         main_record.pop('latest_hr')
-                        #
-                        # if main_record['Key'] == 'goal':
-                        #     if main_record.get('sidList', None) is not None:
-                        #         main_record.pop('sidList')
-
-                        fitness_data_down_ext = None
-
-
-                        if 'time' in main_record:
-                            # value的json中会有time字段，和通用字段重合了，这里直接去掉
-                            main_record.pop('time')
-                        if 'total_score' in main_record:
-                            # 睡眠数据中，可能会有睡眠评分数据，去掉
-                            main_record.pop('total_score')
-                        if 'friendly_score' in main_record:
-                            main_record.pop('friendly_score')
-
-                        if 'items' in main_record:
-                            fitness_data_down_ext = main_record.pop('items')
-
-
-                        batch.append((main_record, fitness_data_down_ext))
-                        
-                        # 当批处理列表达到设定大小时，批量保存
-                        if len(batch) >= BATCH_SIZE:
-                            repo.save_batch_records(batch)
-                            processed_rows += len(batch)
-                            batch = []  # 清空批处理列表
-                            print(f"已处理 {processed_rows}/{total_rows} 行数据")
-
-                    except (json.JSONDecodeError, KeyError, ValueError) as e:
-                        print(f"main_record2: {main_record}")
-                        print(f"value_json: {value_json}")
-                        print(f"警告：处理第 {total_rows} 行时数据格式有误，已跳过。错误: {e}")
-                    except Exception as e:
-                        print(f"main_record2: {main_record}")
-                        print(f"value_json: {value_json}")
-                        print(f"警告：处理第 {total_rows} 行时发生未知错误：{e}，已跳过。")
-                
-                # 处理剩余的记录
-                if batch:
-                    repo.save_batch_records(batch)
-                    processed_rows += len(batch)
-                    print(f"已处理 {processed_rows}/{total_rows} 行数据")
-
-            print(f"\n处理完成！共扫描 {total_rows} 行，成功处理并存入数据库 {processed_rows} 行。")
-
-    except sqlite3.Error as e:
-        print(f"\n数据库操作失败: {e}")
-    except FileNotFoundError:
-        print(f"错误：指定的文件夹路径不存在 '{DATA_FOLDER_PATH}'")
-    except Exception as e:
-        print(f"\n发生了未预料的错误: {e}")
-    finally:
-        # 这里的 hasattr(db_instance, 'conn') 是一个安全检查
-        if 'db_instance' in locals() and hasattr(db_instance, 'conn') and db_instance.conn:
-            end = time.perf_counter()
-            print(f"执行时间：{(end - start) :.6f} 秒")  # 转换为毫秒显示，更易读
-            db_instance.close()
-            print("数据库连接已关闭。")
+    repo = fitness_data_down(db_instance)
+    repo.import_XiaomiBand5_down()

@@ -1,25 +1,37 @@
-DOUBAN:
+Douban:
 #  示例 123456789
   user: ""
-DU:
+
+Grcores:
   cookie: ""
-FLOMO:
-# 示例 r'BasicData\\flomo\\我的.html'
-  file_path: ""、
-    authorization: ""
+
+Flomo:
+# 示例 r'data\\flomo\\我的笔记.html'
+  file_path: ""
+  file_name: ""
+  authorization: ""
 #authorization签名和cookie都是用户认证，
 #复制 Cookie：需要先解析 Cookie 中的 Token，再构造Authorization头（或服务器直接从 Cookie 中取 Token）；
 #直接复制Authorization：可直接使用，更便捷。
 
-FLYME:
+#小米运动的csv表存放目录
+MiSmartBand5:
+  path: "data/Manual_Import_Data/目录名"
+
+#解压路径
+Decompress:
+  path: "data/zip"
+
+Flyme:
   cookie: ""
-GRCORES:
+  images_path: "data/FlymeImages"
+Du:
   cookie: ""
-WEREAD:
+Weread:
   cookie: ""
-ZHANGYUE:
+Zhangyue:
   cookie: ""
-QIANJI:
+Qianji:
   cookie: ""
 
 
@@ -37,6 +49,7 @@ skip_paths:
 thumbnails:
   enabled: true
   size: [400, 400]
+  path: "data/thumbnails"
 
 MYSQL:
   host: ""
@@ -47,3 +60,6 @@ MYSQL:
 # SQLite数据库保存路径
 SQLite:
   path: "data/SQLite.db"
+
+Data_End: "data/Data_End"
+Data_Star: "data/Data_Star"

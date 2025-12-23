@@ -14,7 +14,7 @@ class QianJiApi:
 
     @retry(stop_max_attempt_number=3, wait_fixed=5000)
     def get_catefories(self):
-        cookie = app_config.qianji_cookie
+        cookie = app_config.qianji.cookie
         headers = {
             "devid": "5bdc9946fec22964881cb62b2cd3f697",
             "os": "1",
@@ -91,7 +91,7 @@ class QianJiApi:
         if r.ok:
             data = r.json()
             # 筛选数据
-            app_Utils.save(app_config.data_star, "qianji_data.json",data.get("data",""), "txt")
+            app_Utils.save(app_config.Data_Star, "qianji_data.json",data.get("data",""), "txt")
 
         else:
             raise Exception(f"获取钱迹数据失败： {r}")

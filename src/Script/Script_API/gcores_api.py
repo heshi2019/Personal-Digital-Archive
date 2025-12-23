@@ -157,10 +157,10 @@ class GcoresApi:
                     i += 20  # 强制前进以避免死循环
                     retry_count = 0
 
-        app_Utils.save(app_config.data_star, "Gcores_Radios.json", radiosList, "txt")
-        app_Utils.save(app_config.data_end, "Gcores_Categories.json", categoriesList, "txt")
-        app_Utils.save(app_config.data_star, "Gcores_User.json", usersList, "txt")
-        app_Utils.save(app_config.data_star, "Gcores_albums.json", albumsList, "txt")
+        app_Utils.save(app_config.Data_Star, "Gcores_Radios.json", radiosList, "txt")
+        app_Utils.save(app_config.Data_End, "Gcores_Categories.json", categoriesList, "txt")
+        app_Utils.save(app_config.Data_Star, "Gcores_User.json", usersList, "txt")
+        app_Utils.save(app_config.Data_Star, "Gcores_albums.json", albumsList, "txt")
 
         return radiosList,categoriesList,usersList,albumsList
     # 数据筛选

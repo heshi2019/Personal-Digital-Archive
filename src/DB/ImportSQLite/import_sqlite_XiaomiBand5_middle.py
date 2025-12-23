@@ -206,214 +206,217 @@ class fitness_data_middle:
                     cursor.executemany("INSERT INTO fitness_data_middle_ext (main_record_id, item_json) VALUES (?, ?)",
                                        items_to_insert)
 
+    def import_XiaomiBand5_middle(self):
+        start = time.perf_counter()
+
+        # db_instance = SQLite_util(app_config.SQLitePath)
+        try:
+            # repo = fitness_data_middle(db_instance)
+            self.create_tables()
+
+            CSV_FILENAME_PATTERN = '*_MiFitness_user_fitness_data_records.csv'
+
+            search_path = os.path.join(app_config.MiSmartBand5, CSV_FILENAME_PATTERN)
+            files_found = glob.glob(search_path)
+
+            if not files_found:
+                print(f"错误：在文件夹 '{app_config.MiSmartBand5}' 中没有找到匹配 '{CSV_FILENAME_PATTERN}' 的文件。")
+            else:
+                source_file = files_found[0]
+                print(f"成功找到源文件：'{source_file}'，开始处理...")
+
+                BATCH_SIZE = 10000  # 批处理大小，可以根据系统性能调整
+                batch = []
+
+                with (open(source_file, mode='r', encoding='utf-8') as csvfile):
+                    reader = csv.DictReader(csvfile)
+                    total_rows = 0
+                    processed_rows = 0
+                    kisp_rows = 0
+
+                    for row in reader:
+                        total_rows += 1
+                        try:
+                            main_record = {
+                                'uid': int(row['uid']), 'did': row['did'], 'tag': row['tag'],
+                                'key': row['key'], 'time': int(row['time']),
+                                'last_modify': int(row['last_modify']),'metric': int(row['metric'])
+                            }
 
 
-# --- 数据导入脚本 (最终健壮版) ---
-if __name__ == '__main__':
+                            if not ((main_record['tag'] == 'days' and main_record['key'] == 'watch_steps_report') or \
+                                (main_record['tag'] == 'days' and main_record['key'] == 'watch_steps_record') or \
+                                (main_record['tag'] == 'days' and main_record['key'] == 'watch_sleep_report') or \
+                                (main_record['tag'] == 'days' and main_record['key'] == 'watch_night_sleep_record') or \
+                                (main_record['tag'] == 'days' and main_record['key'] == 'watch_hrm_report') or \
+                                (main_record['tag'] == 'days' and main_record['key'] == 'huami_pai_record') or \
+                                (main_record['tag'] == 'days' and main_record['key'] == 'watch_stress_report') or \
+                                (main_record['tag'] == 'weekly_statistics' and main_record['key'] == 'fitness_report')) :
+                                kisp_rows += 1
+                                continue
 
-    start = time.perf_counter()
+                            value_json = json.loads(row['value'])
 
-    db_instance = SQLite_util(app_config.SQLitePath)
-    try:
-        repo = fitness_data_middle(db_instance)
-        repo.create_tables()
-
-        CSV_FILENAME_PATTERN = '*_MiFitness_user_fitness_data_records.csv'
-        DATA_FOLDER_PATH = "C:/Users/28484/Desktop/20251209_1311597473_MiFitness_c3_data_copy (1)"
-
-        search_path = os.path.join(DATA_FOLDER_PATH, CSV_FILENAME_PATTERN)
-        files_found = glob.glob(search_path)
-
-        if not files_found:
-            print(f"错误：在文件夹 '{DATA_FOLDER_PATH}' 中没有找到匹配 '{CSV_FILENAME_PATTERN}' 的文件。")
-        else:
-            source_file = files_found[0]
-            print(f"成功找到源文件：'{source_file}'，开始处理...")
-
-            BATCH_SIZE = 10000  # 批处理大小，可以根据系统性能调整
-            batch = []
-
-            with (open(source_file, mode='r', encoding='utf-8') as csvfile):
-                reader = csv.DictReader(csvfile)
-                total_rows = 0
-                processed_rows = 0
-                kisp_rows = 0
-
-                for row in reader:
-                    total_rows += 1
-                    try:
-                        main_record = {
-                            'uid': int(row['uid']), 'did': row['did'], 'tag': row['tag'],
-                            'key': row['key'], 'time': int(row['time']),
-                            'last_modify': int(row['last_modify']),'metric': int(row['metric'])
-                        }
-
-
-                        if not ((main_record['tag'] == 'days' and main_record['key'] == 'watch_steps_report') or \
-                            (main_record['tag'] == 'days' and main_record['key'] == 'watch_steps_record') or \
-                            (main_record['tag'] == 'days' and main_record['key'] == 'watch_sleep_report') or \
-                            (main_record['tag'] == 'days' and main_record['key'] == 'watch_night_sleep_record') or \
-                            (main_record['tag'] == 'days' and main_record['key'] == 'watch_hrm_report') or \
-                            (main_record['tag'] == 'days' and main_record['key'] == 'huami_pai_record') or \
-                            (main_record['tag'] == 'days' and main_record['key'] == 'watch_stress_report') or \
-                            (main_record['tag'] == 'weekly_statistics' and main_record['key'] == 'fitness_report')) :
-                            kisp_rows += 1
-                            continue
-
-                        value_json = json.loads(row['value'])
-
-                        if isinstance(value_json, dict) and main_record['key'] == 'watch_steps_report':
-                            # 提取actSteps中键"0"对应的值，替换原actSteps
-                            value_json["actSteps"] = value_json["actSteps"]["0"]
-
-
-                        if isinstance(value_json, list) and main_record['key'] == 'watch_steps_record':
-                            temp_value_json = []
-                            # 遍历每个字典元素，修改actSteps的值
-                            for idx,item in enumerate(value_json):
+                            if isinstance(value_json, dict) and main_record['key'] == 'watch_steps_report':
                                 # 提取actSteps中键"0"对应的值，替换原actSteps
-                                item["actSteps"] = item["actSteps"]["0"]
-
-                                temp_value_json.append(item)
-                            value_json = temp_value_json
-
-                        if main_record['key'] == 'watch_hrm_report':
-                            # 二级解包，手动映射，这种方式很蠢，但先完成吧
-                            value_json.update({'max_hrm_time':value_json['max_hrm']['time']})
-                            value_json.update({'max_hrm_hrm':value_json['max_hrm']['hrm']})
-
-                            value_json.update({'min_hrm_time':value_json['min_hrm']['time']})
-                            value_json.update({'min_hrm_hrm':value_json['min_hrm']['hrm']})
-
-                            value_json.pop('max_hrm')
-                            value_json.pop('min_hrm')
-
-                        if main_record['key'] == 'watch_stress_report':
-                            # 二级解包，映射，去掉不要的字段
-                            value_json_temp = {}
-                            value_json_temp.update({'max_stress_stress': value_json['max_stress']['stress']})
-                            value_json_temp.update({'max_stress_time': value_json['max_stress']['time']})
-
-                            value_json_temp.update({'min_stress_stress': value_json['min_stress']['stress']})
-                            value_json_temp.update({'min_stress_time': value_json['min_stress']['time']})
-
-                            value_json_temp.update({'avg_stress': value_json['avg_stress']})
-
-                            value_json = value_json_temp
-
-                        if main_record['key'] == 'fitness_report':
-                            value_json.update({'steps_summary_int_value': value_json['steps_summary']['int_value']})
-                            value_json.update({'calorie_summary_int_value': value_json['calorie_summary']['int_value']})
-
-                            if 'sports_duration' in value_json:
-                                value_json.update({'sports_duration_int_value': value_json['sports_duration']['int_value']})
-                                value_json.pop('sports_duration')
-                            if  'sports_value' in value_json:
-                                value_json.update({'running_int_value': value_json['sports_value']['running']['int_value']})
-                                value_json.pop('sports_value')
-
-                            # 解包，映射
-                            value_json.pop('steps_summary')
-                            value_json.pop('calorie_summary')
+                                value_json["actSteps"] = value_json["actSteps"]["0"]
 
 
+                            if isinstance(value_json, list) and main_record['key'] == 'watch_steps_record':
+                                temp_value_json = []
+                                # 遍历每个字典元素，修改actSteps的值
+                                for idx,item in enumerate(value_json):
+                                    # 提取actSteps中键"0"对应的值，替换原actSteps
+                                    item["actSteps"] = item["actSteps"]["0"]
+
+                                    temp_value_json.append(item)
+                                value_json = temp_value_json
+
+                            if main_record['key'] == 'watch_hrm_report':
+                                # 二级解包，手动映射，这种方式很蠢，但先完成吧
+                                value_json.update({'max_hrm_time':value_json['max_hrm']['time']})
+                                value_json.update({'max_hrm_hrm':value_json['max_hrm']['hrm']})
+
+                                value_json.update({'min_hrm_time':value_json['min_hrm']['time']})
+                                value_json.update({'min_hrm_hrm':value_json['min_hrm']['hrm']})
+
+                                value_json.pop('max_hrm')
+                                value_json.pop('min_hrm')
+
+                            if main_record['key'] == 'watch_stress_report':
+                                # 二级解包，映射，去掉不要的字段
+                                value_json_temp = {}
+                                value_json_temp.update({'max_stress_stress': value_json['max_stress']['stress']})
+                                value_json_temp.update({'max_stress_time': value_json['max_stress']['time']})
+
+                                value_json_temp.update({'min_stress_stress': value_json['min_stress']['stress']})
+                                value_json_temp.update({'min_stress_time': value_json['min_stress']['time']})
+
+                                value_json_temp.update({'avg_stress': value_json['avg_stress']})
+
+                                value_json = value_json_temp
+
+                            if main_record['key'] == 'fitness_report':
+                                value_json.update({'steps_summary_int_value': value_json['steps_summary']['int_value']})
+                                value_json.update({'calorie_summary_int_value': value_json['calorie_summary']['int_value']})
+
+                                if 'sports_duration' in value_json:
+                                    value_json.update({'sports_duration_int_value': value_json['sports_duration']['int_value']})
+                                    value_json.pop('sports_duration')
+                                if  'sports_value' in value_json:
+                                    value_json.update({'running_int_value': value_json['sports_value']['running']['int_value']})
+                                    value_json.pop('sports_value')
+
+                                # 解包，映射
+                                value_json.pop('steps_summary')
+                                value_json.pop('calorie_summary')
 
 
-                            # 跳过字段
-                            if 'rank_percent_summary' in value_json:
-                                value_json.pop('rank_percent_summary')
 
-                            if 'all_fitness_goal_achieved_count' in value_json:
-                                value_json.pop('all_fitness_goal_achieved_count')
 
-                            if 'allFitnessGoalAchivevedDay' in value_json:
-                                value_json.pop('allFitnessGoalAchivevedDay')
+                                # 跳过字段
+                                if 'rank_percent_summary' in value_json:
+                                    value_json.pop('rank_percent_summary')
 
-                            if 'all_fitness_goal_achieved_count_diff' in value_json:
-                                value_json.pop('all_fitness_goal_achieved_count_diff')
+                                if 'all_fitness_goal_achieved_count' in value_json:
+                                    value_json.pop('all_fitness_goal_achieved_count')
 
-                            if 'avg_achieved_fitness_goal_summary' in value_json:
-                                value_json.pop('avg_achieved_fitness_goal_summary')
+                                if 'allFitnessGoalAchivevedDay' in value_json:
+                                    value_json.pop('allFitnessGoalAchivevedDay')
 
-                            if 'cal_goal_achieve' in value_json:
-                                value_json.pop('cal_goal_achieve')
+                                if 'all_fitness_goal_achieved_count_diff' in value_json:
+                                    value_json.pop('all_fitness_goal_achieved_count_diff')
 
-                            if 'version' in value_json:
-                                value_json.pop('version')
+                                if 'avg_achieved_fitness_goal_summary' in value_json:
+                                    value_json.pop('avg_achieved_fitness_goal_summary')
 
-                            if 'sleep_report' in value_json and isinstance(value_json['sleep_report'],dict):
-                                temp_value_json={}
-                                for key in value_json['sleep_report'].keys():
+                                if 'cal_goal_achieve' in value_json:
+                                    value_json.pop('cal_goal_achieve')
 
-                                    # 剔除字段
-                                    if key == 'sleep_stage' or key == 'sleep_evaluation' or key == 'avg_friendly_score' or key == 'max_friendly_score':
-                                        continue
+                                if 'version' in value_json:
+                                    value_json.pop('version')
+
+                                if 'sleep_report' in value_json and isinstance(value_json['sleep_report'],dict):
+                                    temp_value_json={}
+                                    for key in value_json['sleep_report'].keys():
+
+                                        # 剔除字段
+                                        if key == 'sleep_stage' or key == 'sleep_evaluation' or key == 'avg_friendly_score' or key == 'max_friendly_score':
+                                            continue
+
+                                        # 只解包，不映射
+                                        temp_value_json.update({key:value_json['sleep_report'].get(key)})
+                                    value_json.pop('sleep_report')
+                                    value_json.update(temp_value_json)
+
+                                if 'hlth_status' in value_json and isinstance(value_json['hlth_status'], dict):
+                                    temp_value_json = {}
 
                                     # 只解包，不映射
-                                    temp_value_json.update({key:value_json['sleep_report'].get(key)})
-                                value_json.pop('sleep_report')
-                                value_json.update(temp_value_json)
+                                    for key in value_json['hlth_status'].keys():
+                                        temp_value_json.update({key: value_json['hlth_status'].get(key)})
+                                    value_json.pop('hlth_status')
+                                    value_json.update(temp_value_json)
 
-                            if 'hlth_status' in value_json and isinstance(value_json['hlth_status'], dict):
-                                temp_value_json = {}
+                            if main_record['key'] == 'watch_steps_record':
+                                for idx, item in enumerate(value_json):
+                                    main_record.update(item)
+                            else:
+                                main_record.update(value_json)
 
-                                # 只解包，不映射
-                                for key in value_json['hlth_status'].keys():
-                                    temp_value_json.update({key: value_json['hlth_status'].get(key)})
-                                value_json.pop('hlth_status')
-                                value_json.update(temp_value_json)
+                            fitness_data_top_ext = None
+                            temp_dict = {}
 
-                        if main_record['key'] == 'watch_steps_record':
-                            for idx, item in enumerate(value_json):
-                                main_record.update(item)
-                        else:
-                            main_record.update(value_json)
-
-                        fitness_data_top_ext = None
-                        temp_dict = {}
-
-                        # 一对多字段单独存储
-                        if 'items' in main_record:
-                            fitness_data_top_ext = main_record.pop('items')
+                            # 一对多字段单独存储
+                            if 'items' in main_record:
+                                fitness_data_top_ext = main_record.pop('items')
 
 
-                        batch.append((main_record, fitness_data_top_ext))
+                            batch.append((main_record, fitness_data_top_ext))
 
-                        # 当批处理列表达到设定大小时，批量保存
-                        if len(batch) >= BATCH_SIZE:
-                            repo.save_batch_records(batch)
-                            processed_rows += len(batch)
-                            batch = []  # 清空批处理列表
-                            print(f"已处理 {processed_rows}/{total_rows} 行数据")
+                            # 当批处理列表达到设定大小时，批量保存
+                            if len(batch) >= BATCH_SIZE:
+                                repo.save_batch_records(batch)
+                                processed_rows += len(batch)
+                                batch = []  # 清空批处理列表
+                                print(f"已处理 {processed_rows}/{total_rows} 行数据")
 
-                    except (json.JSONDecodeError, KeyError, ValueError) as e:
-                        print(f"main_record1: {main_record}")
-                        print(f"value_json: {value_json}")
-                        print(f"警告：处理第 {total_rows} 行时数据格式有误，已跳过。错误: {e}")
-                    except Exception as e:
-                        print(f"main_record2: {main_record}")
-                        print(f"value_json: {value_json}")
-                        print(f"警告：处理第 {total_rows} 行时发生未知错误：{e}，已跳过。")
+                        except (json.JSONDecodeError, KeyError, ValueError) as e:
+                            print(f"main_record1: {main_record}")
+                            print(f"value_json: {value_json}")
+                            print(f"警告：处理第 {total_rows} 行时数据格式有误，已跳过。错误: {e}")
+                        except Exception as e:
+                            print(f"main_record2: {main_record}")
+                            print(f"value_json: {value_json}")
+                            print(f"警告：处理第 {total_rows} 行时发生未知错误：{e}，已跳过。")
 
-                # 处理剩余的记录
-                if batch:
-                    repo.save_batch_records(batch)
-                    processed_rows += len(batch)
-                    print(f"已处理 {processed_rows}/{total_rows} 行数据")
+                    # 处理剩余的记录
+                    if batch:
+                        repo.save_batch_records(batch)
+                        processed_rows += len(batch)
+                        print(f"已处理 {processed_rows}/{total_rows} 行数据")
 
-            print(f"\n处理完成！共扫描 {total_rows} 行，处理 {processed_rows + kisp_rows} 行。"
-                  f"成功处理并存入数据库 {processed_rows} 行。跳过 {kisp_rows} 行。")
+                print(f"\n处理完成！共扫描 {total_rows} 行，处理 {processed_rows + kisp_rows} 行。"
+                      f"成功处理并存入数据库 {processed_rows} 行。跳过 {kisp_rows} 行。")
 
-    except sqlite3.Error as e:
-        print(f"\n数据库操作失败: {e}")
-    except FileNotFoundError:
-        print(f"错误：指定的文件夹路径不存在 '{DATA_FOLDER_PATH}'")
-    except Exception as e:
-        print(f"\n发生了未预料的错误: {e}")
-    finally:
-        # 这里的 hasattr(db_instance, 'conn') 是一个安全检查
-        if 'db_instance' in locals() and hasattr(db_instance, 'conn') and db_instance.conn:
-            end = time.perf_counter()
-            print(f"执行时间：{(end - start) :.6f} 秒")  # 转换为毫秒显示，更易读
-            db_instance.close()
-            print("数据库连接已关闭。")
+        except sqlite3.Error as e:
+            print(f"\n数据库操作失败: {e}")
+        except FileNotFoundError:
+            print(f"错误：指定的文件夹路径不存在 '{app_config.MiSmartBand5}'")
+        except Exception as e:
+            print(f"\n发生了未预料的错误: {e}")
+        finally:
+            # 这里的 hasattr(db_instance, 'conn') 是一个安全检查
+            if hasattr(self.db, 'conn') and self.db.conn:
+                end = time.perf_counter()
+                print(f"执行时间：{(end - start) :.6f} 秒")  # 转换为毫秒显示，更易读
+                db_instance.close()
+                print("数据库连接已关闭。")
+
+# --- 数据导入脚本 ---
+if __name__ == '__main__':
+
+    db_instance = SQLite_util(app_config.SQLitePath)
+    repo = fitness_data_middle(db_instance)
+
+    repo.import_XiaomiBand5_middle()

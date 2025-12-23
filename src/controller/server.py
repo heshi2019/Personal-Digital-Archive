@@ -1,8 +1,9 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 import os, mimetypes
-from src.config.configClass import load_config
-from src.DB.SQLite_util import DB
+
+from src.DB.SQLite_util import SQLite_util
+from src.config.configClass import app_config
 
 # FastAPI框架，其实也就是python用于和前端通行的入口
 # 和java中的SpringMVC的请求映射机制类似，都是将HTTP请求路径映射到后端处理函数的机制
@@ -10,9 +11,9 @@ from src.DB.SQLite_util import DB
 
 app = FastAPI()
 
-config = load_config()
+
 # 初始化数据库，并创建对象
-db = DB(config.database.path)
+db = SQLite_util(app_config.SQLitePath)
 
 @app.get("/api/files")
 def list_files():

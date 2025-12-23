@@ -51,7 +51,7 @@ class DouBanApi:
                 page += 1
                 offset = page * 50
         # 将笔记文字部分输出到json文件
-        app_Utils.save(app_config.data_star, "douban_"+status+".json", results, "txt")
+        app_Utils.save(app_config.Data_Star, "douban_"+status+".json", results, "txt")
 
         return results
 
@@ -68,6 +68,6 @@ class DouBanApi:
 
         if response.ok:
             # 保存数据
-            app_Utils.save(app_config.data_star,"douban_"+id+".json", response.text.strip(),"json")
+            app_Utils.save(app_config.Data_Stara,"douban_"+id+".json", response.text.strip(),"json")
 
             return response.text.strip()

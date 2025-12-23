@@ -8,23 +8,16 @@ from src.utils.utils import app_Utils
 
 def main():
 
-    print("开始解析flomo数据")
+    print("开始手动脚本解析 flomo 数据")
 
-    # 获取项目根目录路径
-    root_path = Path(__file__).parent.parent.parent.parent  # InternetCrawler目录
+    print(f"尝试读取文件路径: {app_config.Flomo.file_path}")
 
-    # 获取配置文件中的相对路径
-    relative_path = app_config.flomo_file_path
-
-    # 构建完整的绝对路径
-    file_path = root_path / relative_path
-
-    print(f"尝试读取文件路径: {file_path}")
-
-    data = html_file_to_json(file_path)
+    data = html_file_to_json(Path(app_config.Flomo.file_path) / app_config.Flomo.file_name)
 
     # 保存数据
-    app_Utils.save(app_config.data_end, "flomo.json", data, "json")
+    app_Utils.save(app_config.Data_End, "flomo.json", data, "json")
+
+    print("flomo 手动解析完成")
 
 def html_file_to_json(file_path):  # 参数改为文件路径
     try:

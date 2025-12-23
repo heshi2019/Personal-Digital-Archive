@@ -67,7 +67,7 @@ class DUApi:
             errcode = r.json()
             raise Exception(f"获取书列表错误，错误如下： {errcode}")
 
-        app_Utils.save(app_config.data_star,"Du_bookList.json",r.json(),"txt")
+        app_Utils.save(app_config.Data_Star,"Du_bookList.json",r.json(),"txt")
 
         return r.json()
 
@@ -98,7 +98,7 @@ class DUApi:
                     errcode = r.json()
                     raise Exception(f"获取笔记划线列表错误，错误如下： {errcode}")
 
-        app_Utils.save(app_config.data_star,"Du_Annotations.json",book_dataAnnotations,"txt")
+        app_Utils.save(app_config.Data_Star,"Du_Annotations.json",book_dataAnnotations,"txt")
 
         return book_dataAnnotations
 
@@ -116,7 +116,7 @@ class DUApi:
         r = self.session.post(DU_Chapter,json=body)
         if r.ok:
             # 这个post请求返回的数据，如果经过json格式化再写入文件，会导致文件出现莫名其妙的\
-            app_Utils.save(app_config.data_star, "Du_Chapter.json", r.json()[0].get("body"), "json")
+            app_Utils.save(app_config.Data_Star, "Du_Chapter.json", r.json()[0].get("body"), "json")
 
         else:
             errcode = r.json()

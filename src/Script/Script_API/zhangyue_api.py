@@ -119,7 +119,7 @@ class ZhangYueApi:
             r = self.session.get(ZhangYue_data_list,headers=headers,params = params)
 
             if r.ok and r.json().get("data",{}) != {}:
-                app_Utils.save(app_config.data_star, "ZhangYue_Data_List.json", r.json().get("data",{}), "json")
+                app_Utils.save(app_config.Data_Star, "ZhangYue_Data_List.json", r.json().get("data",{}), "json")
             else:
                 raise Exception(f"获取掌阅批注数据信息错误，错误如下： {r}")
             return r.json().get("data",{})
