@@ -24,8 +24,8 @@ class GcoresUserRepository:
                 url TEXT,                   -- 用户URL
                 location TEXT,              -- 用户地点
                 intro TEXT,                 -- 用户个人签名
-                followersCount TEXT,        -- 被关注数
-                followeesCount TEXT,        -- 关注数
+                followersCount INTEGER,        -- 被关注数
+                followeesCount INTEGER,        -- 关注数
                 created_at TEXT NOT NULL,   -- 注册时间
                 updated_at TEXT             -- 更新时间
             )

@@ -31,7 +31,7 @@ class FlomoApi:
 
         latest_updated_at = 1
 
-        user_authorization = app_config.flomo_authorization
+        user_authorization = app_config.Flomo.authorization
 
         memo_list = []
         while True:

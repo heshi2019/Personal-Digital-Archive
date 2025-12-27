@@ -42,7 +42,7 @@ class GcoresApi:
 
     def get_cookie(self):
 
-        cookie = app_config.gcores_cookie
+        cookie = app_config.Grcores
         if cookie is None:
             cookie = os.getenv("GRCORES_COOKIE")
 

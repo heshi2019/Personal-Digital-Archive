@@ -1,5 +1,8 @@
 import os
+import re
 from datetime import datetime
+
+
 try:
     import piexif
 except Exception:
@@ -27,14 +30,41 @@ def parse_file_metadata(path: str):
     stat = os.stat(path)
     # 注意：mtime表示修改时间，ctime则取决于具体平台
 
+    # 拿文件的目录路径和文件名
+    dir_path, file_name = os.path.split(path)
+
+    # 再拿上层目录名
+    dir_path, dir_name = os.path.split(dir_path)
+
+    if dir_name == "2014" or dir_name == "2016" or dir_name == "2017"\
+            or dir_name == "2018" or dir_name == "2019" or dir_name == "2020"\
+            or dir_name == "2021" or dir_name == "2022" or dir_name == "2023"\
+            or dir_name == "2024" or dir_name == "2025":
+
+        pattern = r'^\d{4}\.\d{2}\.\d{2}'
+
+
+        # 搜索匹配（只找开头的日期）
+        match  = re.search(pattern, file_name)
+
+        if match:
+            created = datetime.strptime(match .group(), '%Y.%m.%d')
+        else:
+            created = created = datetime.fromtimestamp(stat.st_ctime)
+
+    else:
+        created = datetime.fromtimestamp(stat.st_ctime)
+
+
     # datetime.fromtimestamp将时间戳转换为python的datetime对象
     # stat获取的属性的原始名称是st_XXXX
     modified = datetime.fromtimestamp(stat.st_mtime)
-    created = datetime.fromtimestamp(stat.st_ctime)
+
+
 
     return {
         # isoformat函数，将datetime对象转换为ISO格式字符串，例如：2023-08-24T12:34:56.789000
-        "created_at": created.isoformat(),
-        "modified_at": modified.isoformat(),
+        "created_at": created,
+        "modified_at": modified,
         "size": stat.st_size,
     }

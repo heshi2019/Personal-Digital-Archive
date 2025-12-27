@@ -206,7 +206,7 @@ class fitness_data_down:
                 print(f"成功找到源文件：'{source_file}'，开始处理...")
 
                 # 使用批处理，每次处理10000条记录，在连续处理35万条记录后速度大幅下降
-                BATCH_SIZE = 1  # 批处理大小，可以根据系统性能调整
+                BATCH_SIZE = 10000  # 批处理大小，可以根据系统性能调整
                 batch = []
 
                 with (open(source_file, mode='r', encoding='utf-8') as csvfile):

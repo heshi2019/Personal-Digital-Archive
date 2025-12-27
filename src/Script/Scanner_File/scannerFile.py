@@ -137,7 +137,7 @@ class Scanner:
                             "path": path,
                             "type": ftype,
                             "hash": file_id,
-                            "created_at": meta["created_at"],
+                            "created_at": meta["created_at"] ,
                             "modified_at": meta["modified_at"],
                             "size": meta["size"],
                             "thumbnail_path": thumb_path,

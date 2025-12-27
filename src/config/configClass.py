@@ -25,7 +25,7 @@ class ThumbnailConfig:
 @dataclass
 class FlymeConfig:
     cookie: str
-    path: str
+    images_path: str
 
 @dataclass
 class QianjiConfig:
