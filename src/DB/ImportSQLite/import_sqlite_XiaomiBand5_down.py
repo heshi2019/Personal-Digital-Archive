@@ -16,6 +16,11 @@ class fitness_data_down:
     def create_fitness_data_down_main(self):
         """
         创建用于存储【每日汇总数据】的表。
+
+        小米运动的表的数据，主表都是用了宽表，尽量将所有的字段打平存储，本意是数据库操作时更加方便
+        但其实这是一种非常蠢的方式，由于宽表设计，查询时无法看到有效的字段，后续通过API给前端数据时，
+        其实是通过每个key对应的字段放回，那这样，为什么不直接在表中存json字段，给前端时让前端选择如何渲染
+
         """
         with self.db.transaction() as cursor:
             # 主表: fitness_data_main

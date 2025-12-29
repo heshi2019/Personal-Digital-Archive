@@ -17,10 +17,6 @@ from src.Script.Script_Repeat.gcores import get_gcores_list
 from src.config.configClass import app_config
 from src.utils.file_move import file_move
 
-import os
-import shutil
-import fnmatch
-from typing import Optional
 
 class MainExecution:
     def __init__(self):

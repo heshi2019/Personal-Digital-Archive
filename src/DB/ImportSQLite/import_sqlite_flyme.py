@@ -7,7 +7,11 @@ import json
 from src.DB.SQLite_util import SQLite_util
 from src.config.configClass import app_config
 
-
+'''
+    魅族原本你的body是一个json字符串，里面以块的形式存储数据，这里给一个例子 [{"state":0,"text":"早，今天是二十一号的早上，惯例补日志，昨天发生的事相对平时来说很多，\n\n安慰自己\n"},{"state":3,"name":"img_20200126_034657_318.png"},{"state":3,"name":"img_20200126_034657_776.jpg"},{"state":3,"name":"img_20200126_034657_933.jpg"},{"state":3,"name":"img_20200126_034658_104.jpg"}]
+    下面的函数将这个数据转换为一个字符串，每个块之间用\n隔开，图片用类似md的格式![image](img_20200126_034657_318.png)存储在字符串中
+    
+'''
 class FlymeRepository:
     def __init__(self, db: SQLite_util):
         self.db = db

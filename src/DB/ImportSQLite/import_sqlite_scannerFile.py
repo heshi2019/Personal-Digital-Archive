@@ -13,14 +13,14 @@ class FilesRepository:
     def create_table(self):
         self.db.execute("""
             CREATE TABLE IF NOT EXISTS files (
-                id TEXT PRIMARY KEY,
-                path TEXT NOT NULL,
-                type TEXT,
-                created_at TEXT,
-                modified_at TEXT,
-                hash TEXT,
-                size INTEGER,
-                thumbnail_path TEXT
+                id TEXT PRIMARY KEY,        -- 文件ID，主键（hash值）
+                path TEXT NOT NULL,         -- 文件真实路径
+                type TEXT,                  -- 文件类型
+                created_at TEXT,            -- 创建时间
+                modified_at TEXT,           -- 修改时间
+                hash TEXT,                  -- 文件哈希值
+                size INTEGER,               -- 文件大小（字节）
+                thumbnail_path TEXT         -- 缩略图路径
             )
         """)
 

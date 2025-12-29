@@ -11,6 +11,7 @@ class SQLite_util:
         os.makedirs(os.path.dirname(path), exist_ok=True)
 
         self.conn = sqlite3.connect(path, check_same_thread=False)
+        self.conn.execute("PRAGMA encoding = 'UTF-8'")  # 强制SQLite使用UTF-8
         self.conn.row_factory = sqlite3.Row
 
     def execute(self, sql: str, params=None):

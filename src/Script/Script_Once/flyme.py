@@ -1,8 +1,37 @@
+import json
 from datetime import datetime
+from unittest import result
 
 from src.Script.Script_API.flyme_api import FlymeApi
 from src.config.configClass import app_config
 from src.utils.utils import app_Utils
+
+
+def context_to_str(raw_data):
+
+    parsed_data = json.loads(raw_data)
+
+    # 按你要求的规则转换（文字提取+每个块加\n）
+    result = []
+    for item in parsed_data:
+        if item["state"] == 0:
+            content = item.get("text", "")
+        elif item["state"] == 3:
+            content = f"![image]({item.get('name', '')})"
+        else:
+            content = ""
+        # 每个块末尾加显式的\n
+        result.append(f"{content}\n")
+
+    # 拼接成最终字符串并打印
+    final_str = "".join(result)
+    print("转换后的结果：")
+    print(final_str)
+
+
+    return final_str
+
+
 
 # 30天对应的Unix毫秒值（固定值）
 THIRTY_DAYS_MS = 2592000000
@@ -45,7 +74,7 @@ def get_flyme_list(model=None):
         # body中，state为0和1的是文字，state为3和4的是图片
         temp = {"uuid": item.get("uuid"),"lastUpdate":lastUpdate,
                 "createTime":createTime,"modifyTime":modifyTime,
-                "body":item.get("body"),"title":item.get("title"),"firstImg":item.get("firstImg"),
+                "body":context_to_str(item.get("body")),"title":item.get("title"),"firstImg":item.get("firstImg"),
                 "fileList":item.get("fileList"),"topdate":topdate,"files":item.get("files"),
                 "firstImgSrc":item.get("firstImgSrc"),
                 "groupStatus":ClassificationDict.get(item.get("groupStatus"))}
