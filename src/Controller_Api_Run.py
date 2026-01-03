@@ -43,6 +43,7 @@ class ApiRun:
 
 
 if __name__ == "__main__":
+    ApiRun().run()
 
     ''''
     这个argparse挺有意思的，可以在程序中模拟命令行操作

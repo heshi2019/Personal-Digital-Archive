@@ -1,9 +1,7 @@
 from src.DB.ImportSQLite.import_sqlite_Gcores_categories import GcoresCategoriesRepository
 from src.DB.ImportSQLite.import_sqlite_Gcores_radios import GcoresRadiosRepository
 from src.DB.ImportSQLite.import_sqlite_Gcores_user import GcoresUserRepository
-from src.DB.ImportSQLite.import_sqlite_XiaomiBand5_down import fitness_data_down
-from src.DB.ImportSQLite.import_sqlite_XiaomiBand5_middle import fitness_data_middle
-from src.DB.ImportSQLite.import_sqlite_XiaomiBand5_top import fitness_data_top
+from src.DB.ImportSQLite.import_sqlite_XiaoMiBand5 import XiaoMiBand5
 from src.DB.ImportSQLite.import_sqlite_book import BookRepository
 from src.DB.ImportSQLite.import_sqlite_douban import DoubanRepository
 from src.DB.ImportSQLite.import_sqlite_flomo import FlomoRepository
@@ -81,13 +79,8 @@ class MainExecution:
         repository.import_Qianji_SQLite()
 
         # 小米运动数据入库
-        repo_top = fitness_data_top(self.db_execution)
-        repo_middle = fitness_data_middle(self.db_execution)
-        repo_down = fitness_data_down(self.db_execution)
-
-        repo_top.import_XiaomiBand5_top()
-        repo_middle.import_XiaomiBand5_middle()
-        repo_down.import_XiaomiBand5_down()
+        repo = XiaoMiBand5(self.db_execution)
+        repo.import_XiaomiBand5()
 
     def RepeatExecution(self):
         '''
