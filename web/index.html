@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Timeline - Docusaurus Style</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --ifm-color-primary: #25c2a0;
+            --ifm-background-color: #1b1b1d;
+            --ifm-background-surface-color: #242526;
+            --ifm-navbar-background-color: #242526;
+            --ifm-font-color-base: #e3e3e3;
+            --ifm-menu-color: #a2aab8;
+            --ifm-menu-color-active: #25c2a0;
+            --ifm-menu-background-active: rgba(37, 194, 160, 0.1);
+            --ifm-toc-border-color: #303846;
+        }
+
+        body {
+            background-color: var(--ifm-background-color);
+            color: var(--ifm-font-color-base);
+            overflow: hidden; 
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .navbar {
+            background-color: var(--ifm-navbar-background-color);
+            border-bottom: 1px solid #303846;
+        }
+
+        .text-primary { color: var(--ifm-color-primary); }
+        .bg-primary { background-color: var(--ifm-color-primary); }
+        
+        .timeline-item-transition {
+            transition: left 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.3s;
+        }
+
+        .tick-transition {
+            transition: left 0.6s cubic-bezier(0.25, 0.8, 0.25, 1), height 0.3s, opacity 0.3s;
+        }
+        
+        .menu-category-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: var(--ifm-background-surface-color);
+            border-bottom: 1px solid var(--ifm-toc-border-color);
+            font-weight: bold;
+            color: var(--ifm-font-color-base);
+        }
+        
+        .menu-link {
+            color: var(--ifm-menu-color);
+            cursor: pointer;
+            border-radius: 0.25rem;
+            transition: background 0.2s, color 0.2s;
+            margin-left: 0.5rem;
+            border-left: 1px solid transparent;
+        }
+        .menu-link:hover {
+            color: var(--ifm-color-primary);
+            background: rgba(255,255,255, 0.05);
+        }
+        .menu-link.active {
+            color: var(--ifm-menu-color-active);
+            background: var(--ifm-menu-background-active);
+            border-left: 3px solid var(--ifm-color-primary);
+            font-weight: 500;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #1b1b1d; }
+        ::-webkit-scrollbar-thumb { background: #303846; border-radius: 3px; }
+
+        .modal-enter-active, .modal-leave-active { transition: opacity 0.3s ease; }
+        .modal-enter-from, .modal-leave-to { opacity: 0; }
+
+        .markdown-body h1 { font-size: 2em; font-weight: bold; margin-bottom: 0.5em; border-bottom: 1px solid #303846; padding-bottom: 0.3em; }
+        .markdown-body p { margin-bottom: 1em; color: #d1d5db; line-height: 1.8; }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin-once {
+            animation: spin 1s linear infinite;
+        }
+    </style>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+    <div id="app" class="h-screen flex flex-col relative overflow-hidden">
+        
+        <!-- Navbar -->
+        <nav class="navbar z-50 px-4 h-16 flex justify-between items-center shadow-sm relative shrink-0">
+            <div class="flex items-center gap-6">
+                <div class="flex space-x-1">
+                    <button @click="currentTab = 'timeline'" :class="currentTab === 'timeline' ? 'text-primary font-bold' : 'text-gray-400 hover:text-gray-200'" class="px-3 py-2 text-sm font-medium transition-colors">时间轴</button>
+                    <button @click="currentTab = 'notes'" :class="currentTab === 'notes' ? 'text-primary font-bold' : 'text-gray-400 hover:text-gray-200'" class="px-3 py-2 text-sm font-medium transition-colors">笔记</button>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <!-- Zoom Controls -->
+                <div v-if="currentTab === 'timeline'" class="flex items-center gap-1 bg-[#303846] p-1 rounded-lg">
+                    <button v-for="scale in scales" :key="scale.id" @click="setZoom(scale.id)" :class="currentZoom === scale.id ? 'bg-[#1b1b1d] text-primary shadow-sm' : 'text-gray-400 hover:text-gray-200'" class="px-3 py-1 text-xs font-bold rounded transition-all">{{ scale.label }}</button>
+                </div>
+                
+                <!-- Debug Refresh Button -->
+                <button @click="fetchData" class="text-gray-400 hover:text-primary transition-colors p-2 flex items-center gap-2 border border-[#303846] rounded-lg hover:bg-[#303846]/50" title="获取最新数据">
+                    <i class="fa-solid fa-arrows-rotate text-lg" :class="{ 'animate-spin-once': loading }"></i>
+                    <span class="text-xs font-bold hidden sm:inline">同步数据</span>
+                </button>
+
+                <!-- Settings Button -->
+                <button v-if="currentTab === 'timeline'" @click="showSettings = true" class="text-gray-400 hover:text-primary transition-colors p-2">
+                    <i class="fa-solid fa-gear text-lg"></i>
+                </button>
+            </div>
+        </nav>
+
+        <!-- TIMELINE VIEW -->
+        <main v-if="currentTab === 'timeline'" ref="timelineContainer" class="flex-grow relative overflow-hidden cursor-grab active:cursor-grabbing select-none" @mousedown="startDrag" @mouseleave="stopDrag" @mouseup="stopDrag" @mousemove="onDrag" @wheel.prevent="handleWheel">
+            
+            <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px); background-size: 50px 50px;"></div>
+
+            <div class="absolute h-full w-full top-0 left-0" :style="{ transform: `translateX(${translateX}px)` }">
+                
+                <!-- Axis Line -->
+                <div class="absolute top-1/2 left-0 w-[500000px] h-0.5 bg-gray-600 z-10"></div>
+
+                <!-- Ruler Ticks -->
+                <div class="absolute top-0 bottom-0 w-[500000px] pointer-events-none">
+                    <div v-for="tick in visibleTicks" :key="tick.id" class="absolute w-px bg-gray-500 tick-transition flex flex-col items-center" :style="getTickStyle(tick)">
+                        <span v-if="tick.label" class="absolute whitespace-nowrap text-xs font-medium text-gray-400 select-none" :class="[tick.orientation === 'up' ? 'bottom-full mb-2' : 'top-full mt-2', tick.highlight ? 'text-primary font-bold text-sm' : '']">
+                            {{ tick.label }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Items Container -->
+                <div class="absolute top-0 bottom-0 w-full pointer-events-none"> 
+                    <template v-if="currentZoom !== 'year'">
+                        <div v-for="(item, index) in mediaItems" :key="item.id" class="absolute top-1/2 -translate-y-1/2 timeline-item-transition group pointer-events-auto" :style="{ left: getPosition(item.date) + 'px' }">
+                            
+                            <div class="absolute left-0 w-px bg-primary/40 group-hover:bg-primary transition-colors -translate-x-1/2" :style="getItemLineStyle(index)"></div>
+                            <div class="absolute top-1/2 left-0 w-2 h-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#242526] border border-primary z-30 group-hover:bg-primary transition-all"></div>
+                            
+                            <!-- Detailed Card -->
+                            <div class="absolute left-0 -translate-x-1/2 w-64 bg-[#242526] rounded-lg shadow-xl overflow-hidden border border-[#303846] group-hover:border-primary group-hover:z-50 transition-all z-10" :style="getItemCardStyle(index)">
+                                <div class="px-3 py-1.5 bg-[#303846] text-[11px] text-primary font-bold flex justify-between items-center">
+                                    <span>{{ formatTimeDisplay(item.date) }}</span>
+                                    <div class="flex items-center gap-2">
+                                        <span class="bg-yellow-500/20 text-yellow-500 px-1 rounded text-[9px]">{{ item.value }}★</span>
+                                        <i class="fa-solid fa-quote-right opacity-80"></i>
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-[#1b1b1d]">
+                                     <h4 class="text-xs font-bold text-white mb-2 line-clamp-1">{{ item.title }}</h4>
+                                     <p class="text-[10px] text-gray-300 line-clamp-3 leading-relaxed">{{ item.content }}</p>
+                                </div>
+                                <div class="px-2 py-1 bg-[#242526] border-t border-[#303846] flex justify-between items-center">
+                                    <span class="text-[9px] text-gray-500 uppercase tracking-tighter">{{ item.type }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+            
+            <div class="absolute bottom-8 right-8 bg-[#242526] border border-[#303846] px-4 py-2 rounded-lg shadow-xl z-40 pointer-events-none">
+                <span v-if="loading" class="text-gray-500 text-xs mr-2">正在获取豆瓣数据...</span>
+                <span class="text-primary text-sm font-bold font-mono">{{ centerDateDisplay }}</span>
+            </div>
+        </main>
+
+        <!-- NOTES VIEW -->
+        <main v-if="currentTab === 'notes'" class="flex-grow flex bg-[#1b1b1d] overflow-hidden">
+            <aside class="w-72 border-r border-[#303846] flex flex-col bg-[#242526] flex-shrink-0">
+                <div class="p-4 border-b border-[#303846]">
+                    <h2 class="font-bold text-gray-200"><i class="fa-solid fa-book-open mr-2 text-primary"></i> 笔记目录</h2>
+                </div>
+                <div class="flex-grow overflow-y-auto relative">
+                    <div v-for="notebook in notebooks" :key="notebook.id" class="mb-0">
+                        <div class="menu-category-header px-4 py-3 flex justify-between items-center cursor-pointer hover:bg-[#303846] transition-colors" @click="notebook.expanded = !notebook.expanded">
+                            <span class="text-sm font-bold">{{ notebook.name }}</span>
+                            <i class="fa-solid text-xs text-gray-500" :class="notebook.expanded ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+                        </div>
+                        <div v-if="notebook.expanded" class="py-2 bg-[#1b1b1d]">
+                            <div v-for="note in notebook.notes" :key="note.id" @click="activeNoteId = note.id" :class="activeNoteId === note.id ? 'active' : ''" class="menu-link px-3 py-2 text-xs mb-1 flex justify-between items-center">
+                                <span class="truncate pr-2">{{ note.title }}</span>
+                                <span class="text-[10px] opacity-50 whitespace-nowrap">{{ formatDateShort(note.date) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="flex-1 overflow-y-auto bg-[#1b1b1d] relative">
+                <div v-if="activeNote" class="max-w-4xl mx-auto p-8 md:p-12">
+                    <div class="mb-8 border-b border-[#303846] pb-6">
+                        <div class="flex items-center text-primary text-xs font-bold mb-2 uppercase tracking-wider">
+                            <span class="bg-primary/10 px-2 py-1 rounded">{{ activeNote.category }}</span>
+                            <span class="mx-2 text-gray-600">/</span>
+                            <span>{{ formatDateFull(activeNote.date) }}</span>
+                            <span class="ml-auto text-yellow-500">{{ activeNote.value }} / 5.0</span>
+                        </div>
+                        <h1 class="text-4xl font-extrabold text-white mb-4 leading-tight">{{ activeNote.title }}</h1>
+                    </div>
+                    <article class="markdown-body">
+                         <p class="text-lg text-gray-300 leading-relaxed mb-6">{{ activeNote.content }}</p>
+                    </article>
+                </div>
+                <div v-else class="flex flex-col items-center justify-center h-full text-gray-500">
+                    <i class="fa-solid fa-layer-group text-6xl mb-4 opacity-20"></i>
+                    <p class="text-lg">请从侧边栏选择内容</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- SETTINGS -->
+        <transition name="modal">
+            <div v-if="showSettings" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm" @click.self="showSettings = false">
+                <div class="bg-[#242526] w-96 rounded-xl shadow-2xl border border-[#303846] p-6">
+                    <h3 class="text-xl font-bold text-gray-100 mb-4 flex items-center"><i class="fa-solid fa-sliders mr-2 text-primary"></i> 设置</h3>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-400 mb-2">时间轴起始年份</label>
+                        <input type="number" v-model.number="tempStartYear" class="w-full bg-[#1b1b1d] border border-[#303846] rounded px-3 py-2 text-white focus:border-primary focus:outline-none" />
+                    </div>
+                    <div class="flex justify-end gap-3 mt-6">
+                        <button @click="showSettings = false" class="px-4 py-2 text-sm text-gray-400">取消</button>
+                        <button @click="saveSettings" class="px-4 py-2 text-sm bg-primary text-white font-bold rounded">保存</button>
+                    </div>
+                </div>
+            </div>
+        </transition>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted, reactive } = Vue;
+
+        createApp({
+            setup() {
+                const currentTab = ref('timeline');
+                const currentZoom = ref('year'); 
+                const showSettings = ref(false);
+                const activeNoteId = ref(null); 
+                const loading = ref(false);
+                
+                const config = reactive({ startYear: 2001 });
+                const tempStartYear = ref(2001); 
+
+                const translateX = ref(0); 
+                const isDragging = ref(false);
+                const startX = ref(0);
+                
+                const scales = [
+                    { id: 'year', label: '年', pxPerDay: 0.5 }, 
+                    { id: 'month', label: '月', pxPerDay: 5 },
+                    { id: 'day', label: '日', pxPerDay: 40 }
+                ];
+
+                const pxPerDay = computed(() => scales.find(s => s.id === currentZoom.value)?.pxPerDay || 0.5);
+                const mediaItems = ref([]);
+                const notebooks = ref([]);
+
+                const fetchData = async () => {
+                    if (loading.value) return;
+                    loading.value = true;
+                    try {
+                        const response = await fetch('http://127.0.0.1:5000/api/douban');
+                        if (!response.ok) throw new Error('API request failed');
+                        const data = await response.json();
+                        
+                        // Map and sort items
+                        const mapped = data.map((item, idx) => ({
+                            id: `item-${idx}`,
+                            date: new Date(item.myComment_create_time).getTime(),
+                            title: item.title,
+                            type: item.type,
+                            content: item.myComment_comment,
+                            value: item.myComment_MyValue,
+                            original: item
+                        })).sort((a,b) => a.date - b.date);
+                        
+                        mediaItems.value = mapped;
+
+                        // Sync Notebooks
+                        const types = [...new Set(mapped.map(i => i.type))];
+                        notebooks.value = types.map((type, idx) => ({
+                            id: idx,
+                            name: type || '未分类',
+                            expanded: idx === 0,
+                            notes: mapped.filter(i => i.type === type).map(i => ({
+                                id: i.id,
+                                title: i.title,
+                                date: i.date,
+                                content: i.content,
+                                category: i.type,
+                                value: i.value
+                            }))
+                        }));
+
+                        if (notebooks.value.length > 0 && notebooks.value[0].notes.length > 0) {
+                            activeNoteId.value = notebooks.value[0].notes[0].id;
+                        }
+
+                    } catch (err) {
+                        console.error('Failed to fetch data from API:', err);
+                        alert('无法从 127.0.0.1:5000 获取数据，请检查后端是否开启。');
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+
+                const allNotes = computed(() => notebooks.value.flatMap(nb => nb.notes));
+                const activeNote = computed(() => allNotes.value.find(n => n.id === activeNoteId.value));
+
+                const timelineStartTs = computed(() => new Date(config.startYear, 0, 1).getTime());
+                const getPosition = (ts) => ((ts - timelineStartTs.value) / 86400000) * pxPerDay.value + 200;
+
+                const getTickStyle = (tick) => ({
+                    left: tick.left + 'px',
+                    height: tick.height + 'px',
+                    top: '50%',
+                    transform: tick.orientation === 'up' ? 'translateY(-100%)' : 'none'
+                });
+
+                const getItemLineStyle = (idx) => ({
+                    [idx % 2 === 0 ? 'bottom' : 'top']: '50%',
+                    height: '140px'
+                });
+
+                const getItemCardStyle = (idx) => ({
+                    [idx % 2 === 0 ? 'bottom' : 'top']: 'calc(50% + 140px)'
+                });
+
+                const visibleTicks = computed(() => {
+                    const ticks = [];
+                    const startY = config.startYear;
+                    const endY = new Date().getFullYear() + 1;
+
+                    if (currentZoom.value === 'year') {
+                        let idx = 0;
+                        for (let y = startY; y <= endY; y++) {
+                            const d = new Date(y, 0, 1);
+                            ticks.push({ id: `y-${y}`, left: getPosition(d.getTime()), height: 40, label: `${y}`, highlight: true, orientation: idx % 2 === 0 ? 'up' : 'down' });
+                            idx++;
+                        }
+                    } else if (currentZoom.value === 'month') {
+                        let cur = new Date(startY, 0, 1);
+                        while(cur.getFullYear() <= endY) {
+                            const y = cur.getFullYear(), m = cur.getMonth(), ts = cur.getTime();
+                            if (m === 0) ticks.push({ id: `my-${y}`, left: getPosition(ts), height: 30, label: `${y}年`, highlight: true, orientation: 'down' });
+                            ticks.push({ id: `mm-${ts}`, left: getPosition(ts), height: 15, label: `${m+1}月`, orientation: 'up' });
+                            cur.setMonth(cur.getMonth() + 1);
+                        }
+                    } else {
+                        const screenWidth = window.innerWidth;
+                        const vStart = -translateX.value - 500;
+                        const vEnd = -translateX.value + screenWidth + 500;
+                        let cur = new Date(timelineStartTs.value + ((vStart - 200) / pxPerDay.value * 86400000));
+                        if (cur.getFullYear() < startY) cur = new Date(startY, 0, 1);
+                        let safety = 0;
+                        while (cur.getFullYear() <= endY && safety < 800) {
+                            const ts = cur.getTime(), pos = getPosition(ts);
+                            if (pos > vEnd) break;
+                            safety++;
+                            const d = cur.getDate(), m = cur.getMonth(), y = cur.getFullYear();
+                            if (d === 1) ticks.push({ id: `dm-${ts}`, left: pos, height: 40, label: m === 0 ? `${y}年1月` : `${m+1}月`, highlight: true, orientation: 'down' });
+                            ticks.push({ id: `dd-${ts}`, left: pos, height: 20, label: d % 2 === 0 ? `${d}号` : '', orientation: 'up' });
+                            cur.setDate(cur.getDate() + 1);
+                        }
+                    }
+                    return ticks;
+                });
+
+                const saveSettings = () => {
+                    config.startYear = tempStartYear.value;
+                    showSettings.value = false;
+                    translateX.value = 0;
+                };
+
+                const setZoom = (level) => {
+                    const center = -translateX.value + (window.innerWidth / 2);
+                    const days = (center - 200) / pxPerDay.value;
+                    currentZoom.value = level;
+                    setTimeout(() => {
+                        translateX.value = -((days * pxPerDay.value + 200) - (window.innerWidth / 2));
+                    }, 0);
+                };
+
+                const startDrag = (e) => { isDragging.value = true; startX.value = e.pageX - translateX.value; };
+                const stopDrag = () => { isDragging.value = false; };
+                const onDrag = (e) => {
+                    if (!isDragging.value) return;
+                    translateX.value = e.pageX - startX.value;
+                    if (translateX.value > 100) translateX.value = 100;
+                };
+                const handleWheel = (e) => {
+                    translateX.value -= (e.deltaY + e.deltaX);
+                    if (translateX.value > 100) translateX.value = 100;
+                };
+
+                const formatTimeDisplay = (ts) => {
+                    const d = new Date(ts);
+                    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+                };
+                const formatDateShort = (ts) => { const d = new Date(ts); return `${d.getMonth()+1}-${d.getDate()}`; };
+                const formatDateFull = (ts) => { const d = new Date(ts); return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`; };
+
+                const centerDateDisplay = computed(() => {
+                    const days = ((-translateX.value + window.innerWidth/2) - 200) / pxPerDay.value;
+                    const d = new Date(timelineStartTs.value + (days * 86400000));
+                    return `${d.getFullYear()}年${d.getMonth()+1}月`;
+                });
+
+                onMounted(fetchData);
+
+                return {
+                    currentTab, currentZoom, showSettings, config, tempStartYear, loading,
+                    scales, mediaItems, notebooks, translateX, visibleTicks, activeNoteId, activeNote,
+                    fetchData, setZoom, saveSettings, startDrag, stopDrag, onDrag, handleWheel,
+                    getPosition, getTickStyle, getItemLineStyle, getItemCardStyle,
+                    formatTimeDisplay, formatDateShort, formatDateFull, centerDateDisplay
+                };
+            }
+        }).mount('#app');
+    </script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>

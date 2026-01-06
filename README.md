@@ -1,9 +1,16 @@
 # Personal Data Backend (Minimal)
 
-## Quick start
+后端数据扫描
+src/Main_Execution_In.py
 
-1. Install Python 3.9+ and pip
-2. pip install -r requirements.txt
-3. Edit config/config.yaml to set scan_paths and database_path
-4. Run: python main.py  # does a scan and starts API
-5. API: http://127.0.0.1:5000/api/files
+后端接口启动
+src/Controller_Api_Run.py
+1. API: http://127.0.0.1:5000
+
+前端页面
+cd web
+npm install
+npm run dev
+2. 前端页面: http://127.0.0.1:3000
+
+前端目前有一个测试接口，请求豆瓣的电影接口，测试前端渲染用的
