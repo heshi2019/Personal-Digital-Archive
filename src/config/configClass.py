@@ -53,6 +53,8 @@ class AppConfig:
     Flomo: FlomoConfig
     scan_paths: List[str]
     skip_paths: List[str]
+    diary_path: List[str]
+    image_save_path: str
     thumbnail: ThumbnailConfig
     SQLitePath: str
     Data_End: str
@@ -128,6 +130,8 @@ class AppConfig:
             instance.Flomo = FlomoConfig(**data["Flomo"])
             instance.scan_paths = data["scan_paths"]
             instance.skip_paths = data["skip_paths"]
+            instance.diary_path = data["diary_path"]
+            instance.image_save_path = data["image_save_path"]
             instance.thumbnail = ThumbnailConfig(**data["thumbnails"])
             instance.SQLitePath = data["SQLite"]["path"]
             instance.Data_End = data["Data_End"]

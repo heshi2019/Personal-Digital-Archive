@@ -108,7 +108,6 @@ class GcoresApi:
                 "meta[categories]": ",",
                 "meta[albums]": ",",
                 "meta[users]": ",",
-                # "Cookie": "navAppDownload=2; navJizuFlag=1; navDiscussionFlag=5; navGfusionFlag=5; navBooom2024Flag=5; p_h5_u=733EF180-4BCE-487C-A9E0-ACA552155DC2; acw_tc=0bdd344e17439250001023874e8ecb3d8fcbcddb4fcf2a780b25d050010821; wechatTicket=kgt8ON7yVITDhtdwci0qeVh-oVHCGueploMGrzaCyq87pBNJf7LpDz5vK90E0VmCz1voJbZYIVOZV8zr4tcC1Q; sensorable=true; __snaker__id=Y5P5rCZPWWdq3d1h; gdxidpyhxdE=DyNx9HDU5tTOie1LRrg%2FqbWld2MCMxArkis9GfQy2jUzzf3wTEnIbAXg6P6vf%2Bg7%2FaCtvSmXXnCvpV994qhZTBkJD%5CjzsjJlCW9%5CozwCb5kAsTkOit1JZA6mt0sizBiXEKz3%2FRKZJR3wz9O75rCVWU0XpDxr7dypvwnxHOCG4xaUx08c%3A1743925905823; sensorsdata2015jssdkcross=%7B%22distinct_id%22%3A%22193263a1135581-0796947914ffee4-26011951-1821369-193263a11362921%22%2C%22first_id%22%3A%22%22%2C%22props%22%3A%7B%22%24latest_traffic_source_type%22%3A%22%E7%9B%B4%E6%8E%A5%E6%B5%81%E9%87%8F%22%2C%22%24latest_search_keyword%22%3A%22%E6%9C%AA%E5%8F%96%E5%88%B0%E5%80%BC_%E7%9B%B4%E6%8E%A5%E6%89%93%E5%BC%80%22%2C%22%24latest_referrer%22%3A%22%22%2C%22%24latest_landing_page%22%3A%22https%3A%2F%2Fwww.gcores.com%2F%22%7D%2C%22identities%22%3A%22eyIkaWRlbnRpdHlfY29va2llX2lkIjoiMTkzMjYzYTExMzU1ODEtMDc5Njk0NzkxNGZmZWU0LTI2MDExOTUxLTE4MjEzNjktMTkzMjYzYTExMzYyOTIxIn0%3D%22%2C%22history_login_id%22%3A%7B%22name%22%3A%22%22%2C%22value%22%3A%22%22%7D%2C%22%24device_id%22%3A%22193263a1135581-0796947914ffee4-26011951-1821369-193263a11362921%22%7D",
             }
 
             headers = {

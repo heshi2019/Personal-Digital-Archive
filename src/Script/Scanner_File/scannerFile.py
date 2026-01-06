@@ -1,10 +1,16 @@
+import json
 import os
+from http import client
+
+from src.DB.ImportSQLite.import_sqlite_FilesPhone import FilesPhoneRepository
+from src.DB.ImportSQLite.import_sqlite_FilesMd import FilesMdRepository
 # 新增导入
-from src.DB.ImportSQLite.import_sqlite_scannerFile import FilesRepository
 from src.DB.SQLite_util import SQLite_util
+from src.Script.Scanner_File.eliminateBase64 import extract_md_images
 from src.config.configClass import app_config
 
 from src.utils.file_hash import compute_hash
+from src.utils.llm_utils import OllamaClient
 from src.utils.metadata import parse_file_metadata
 from src.utils import pathUtil
 from src.utils.thumbnail import generate_thumbnail
@@ -30,20 +36,18 @@ class Scanner:
         # 更新扫描路径为扩展后的实际目录列表
         self.config.scan_paths = pathUtil.path_match(self.config.scan_paths)
         self.config.skip_paths = pathUtil.path_match(self.config.skip_paths)
+        self.config.diary_path = pathUtil.path_match(self.config.diary_path)
 
         # 初始化数据库，并创建对象
         self.db = SQLite_util(self.config.SQLitePath)
         self.thumbnail_cfg = self.config.thumbnail
 
-    def close(self):
-        """关闭数据库连接"""
-        if hasattr(self, 'db'):
-            self.db.close()
-
     def scan(self, full=False):
         # 换新的数据库管理方式
-        filesTable = FilesRepository(self.db)
-        filesTable.create_table()
+        files_phone_table = FilesPhoneRepository(self.db)
+        files_phone_table.create_table()
+        files_md_table = FilesMdRepository(self.db)
+        files_md_table.create_table()
 
         """扫描已配置的路径。如果full=True，则重新计算所有文件的哈希值/重新生成缩略图。"""
         print(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 开始扫描...")
@@ -102,7 +106,7 @@ class Scanner:
                     elif ext in VIDEO_EXT:
                         ftype = "video"
                     elif ext in NOTE_EXT:
-                        ftype = "note"
+                        ftype = "md"
                     elif ext in MUSUC_EXT:
                         ftype = "music"
 
@@ -131,27 +135,51 @@ class Scanner:
                             else:
                                 print(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 缩略图已存在: {thumb_path}")
 
-                        # 插入或更新数据库
-                        filesTable.upsert({
-                            "id": file_id,
-                            "path": path,
-                            "type": ftype,
-                            "hash": file_id,
-                            "created_at": meta["created_at"] ,
-                            "modified_at": meta["modified_at"],
-                            "size": meta["size"],
-                            "thumbnail_path": thumb_path,
-                        })
+                        # 根据路径选择不同的处理方式
+                        is_diary = any(path.startswith(p) for p in self.config.diary_path)
+
+                        if is_diary:
+                            if ext == ".md":
+                                imageDict = extract_md_images(path, app_config.image_save_path)
+                                imageDict = json.dumps(imageDict, ensure_ascii=False, indent=2)
+                            else:
+                                imageDict = None
+                            # 处理日记文件
+                            files_md_table.insert_upsert({
+                                "id": file_id,
+                                "type": ftype,
+                                "file_name": meta["file_name"],
+                                "path": path,
+                                "hash": file_id,
+                                "created_at": meta["created_at"],
+                                "modified_at": meta["modified_at"],
+                                "size": meta["size"],
+                                "imageDict": imageDict,
+                                "summary": None,
+                                "Extend1": None,
+                                "Extend2": None,
+                                "Extend3": None,
+                            })
+                        else:
+                            # 处理普通文件
+                            files_phone_table.upsert({
+                                "id": file_id,
+                                "type": ftype,
+                                "file_name": meta["file_name"],
+                                "path": path,
+                                "hash": file_id,
+                                "created_at": meta["created_at"],
+                                "modified_at": meta["modified_at"],
+                                "size": meta["size"],
+                                "thumbnail_path": thumb_path,
+                            })
 
                         processed_files += 1
                         print(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 保存到数据库: {file_id[:16]}...")
 
                     except Exception as e:
                         error_files += 1
-                        print(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 文件hash或缩略图生成失败:  {path}: {str(e)}")
-
-        # 关闭数据库连接
-        self.close()
+                        print(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 文件数据生成失败:  {path}: {str(e)}")
 
         # Print final statistics
         print(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 扫描完成！")
@@ -161,28 +189,53 @@ class Scanner:
         print(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] - 跳过文件（不支持的文件类型）数: {skipped_files}")
         print(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] - 错误文件数: {error_files}")
 
+    def llm_summary(self):
+
+        files_md_table = FilesMdRepository(self.db)
+        files_md_table.create_table()
+
+        client = OllamaClient(model="llama3.1:8b")
+        question = r"请对以下文件内容，以第三人称进行总结，提取出主要的信息和主题，总结40字左右"
+
+        for base_path in self.config.scan_paths:
+            for root, dirs, files in os.walk(base_path):
+                # 跳过路径
+                if any(skip_path in root for skip_path in self.config.skip_paths):
+                    dirs.clear()
+                    continue
+
+                for f in files:
+                    # 完整路径
+                    path = os.path.join(root, f)
+                    ext = os.path.splitext(f)[1].lower()
+                    file_id = compute_hash(path)
+                    # 日记路径单独处理
+                    is_diary = any(path.startswith(p) for p in self.config.diary_path) and ext == ".md"
+
+                    if is_diary:
+                        print(f"笔记 {path}")
+
+                        result = client.chat_with_file(question, path)
+                        print(f"llm总结内容: {result}\n")
+
+                        # 处理日记文件
+                        files_md_table.upsert({
+                            "id": file_id,
+                            "summary": result,
+                        })
 
 if __name__ == "__main__":
 
-    # argparse是一个处理命令行参数的库，用于解析命令行参数。
-    # ArgumentParser是一个类，用于创建一个解析器对象。
-    # 下面定义了两个参数：action='store_true' 表示如果参数出现在命令行中，就将对应的属性设置为 True。
     parser = argparse.ArgumentParser()
     parser.add_argument('--scan-only', action='store_true', help='只运行扫描器，不启动 API 服务')
     parser.add_argument('--full', action='store_true', help='强制进行完整扫描（重新计算哈希值/缩略图）')
-
-    # 解析命令行参数
     args = parser.parse_args()
-
-    # full是全量扫描，incremental是增量扫描，
-    # scanner.scan函数默认的full变量为false，并且其实也没有定义 incremental 这个值是增量扫描
-    # 其实只要full变量不是true，那就是增量扫描，因此默认就是增量扫描
-    scan_mode = "full" if args.full else "incremental"
-    print(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 扫描模式: {scan_mode}")
-
-    print(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] 正在初始化扫描仪...")
 
     # 初始化扫描仪
     scanner = Scanner()
-    scanner.scan(full=args.full)
 
+    # 扫描目录
+    # scanner.scan(full=args.full)
+
+    # 总结每份笔记内容
+    scanner.llm_summary()

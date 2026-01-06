@@ -64,7 +64,8 @@ def parse_file_metadata(path: str):
 
     return {
         # isoformat函数，将datetime对象转换为ISO格式字符串，例如：2023-08-24T12:34:56.789000
-        "created_at": created,
-        "modified_at": modified,
+        "created_at": created.strftime("%Y-%m-%d %H:%M:%S"),
+        "modified_at": modified.strftime("%Y-%m-%d %H:%M:%S"),
         "size": stat.st_size,
+        "file_name": file_name,
     }
