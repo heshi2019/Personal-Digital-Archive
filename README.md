@@ -1,4 +1,4 @@
-# Personal Data Backend (Minimal)
+# Personal Data Backend
 
 后端数据扫描
 src/Main_Execution_In.py
@@ -9,8 +9,11 @@ src/Controller_Api_Run.py
 
 前端页面
 cd web
+
 npm install
+
 npm run dev
+
 2. 前端页面: http://127.0.0.1:3000
 
 前端目前有一个测试接口，请求豆瓣的电影接口，测试前端渲染用的
