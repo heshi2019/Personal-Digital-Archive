@@ -189,12 +189,12 @@ class Scanner:
         print(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] - 跳过文件（不支持的文件类型）数: {skipped_files}")
         print(f"[{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] - 错误文件数: {error_files}")
 
-    def llm_summary(self):
+    def llm_summary(self,model):
 
         files_md_table = FilesMdRepository(self.db)
         files_md_table.create_table()
 
-        client = OllamaClient(model="llama3.1:8b")
+        client = OllamaClient(model)
         question = r"请对以下文件内容，以第三人称进行总结，提取出主要的信息和主题，总结40字左右"
 
         for base_path in self.config.scan_paths:
@@ -238,4 +238,4 @@ if __name__ == "__main__":
     # scanner.scan(full=args.full)
 
     # 总结每份笔记内容
-    scanner.llm_summary()
+    scanner.llm_summary("llama3.1:8b")

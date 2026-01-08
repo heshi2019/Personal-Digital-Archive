@@ -5,7 +5,7 @@ import time  # 导入时间模块用于计时
 
 
 class OllamaClient:
-    def __init__(self, model="gemma3:4b", base_url="http://localhost:11434"):
+    def __init__(self, model="llama3.1:8b", base_url="http://localhost:11434"):
         """
         初始化 Ollama 客户端
         :param model: 模型名称 (例如 llama3, qwen2, mistral)
