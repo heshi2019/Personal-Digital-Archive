@@ -16,7 +16,7 @@ from src.config.configClass import app_config
 upsert_book和upsert_mark函数很奇特，这两个sql执行函数，形参需要的是dict，
 但在import_book_SQLite函数中给他传递实参的时候，一个是tuple，一个是list，但最后程序还是能执行。
 
-下面是AI解释的原因
+原因是
 1.类型注解的性质：Python的类型注解（如row: Dict）只是静态提示，不是运行时强制检查。Python解释器在运行时会忽略这些类型注解，所以即使传递元组也不会直接导致类型错误。
 2.SQLite参数处理机制：DB类的execute方法直接将参数传递给SQLite的execute方法。SQLite的Python驱动程序能够灵活处理不同类型的参数：
     当SQL语句使用位置占位符（如?）时，期望接收元组/列表参数

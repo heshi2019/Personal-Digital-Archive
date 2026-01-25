@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import datetime
 
 from src.Script.Script_API.gcores_api import GcoresApi
@@ -20,7 +21,7 @@ def get_gcores_list(model=None):
 
     print("开始获取机核电台信息")
     # 初始化播客列表，初步分类
-    radiosList,categoriesList,usersList,albumsList = gcores_api.get_Radios()
+    radiosList,categoriesList,usersList,albumsList = gcores_api.get_Radios(model)
 
     # 丰富用户信息
     for key,value in usersList.items():
@@ -43,11 +44,13 @@ def get_gcores_list(model=None):
         usersList[key]["followees-count"] = followees_count
         usersList[key]["created-at"] = created_at
 
+    usersList = updateArr(model, "Gcores_User.json", usersList)
     app_Utils.save(app_config.Data_End, "Gcores_User.json", usersList, "txt")
 
     # 获取每一个专题的具体节目信息
     albumsList = gcores_api.get_Albums(albumsList)
 
+    albumsList = updateArr(model,"Gcores_albums.json",albumsList)
     app_Utils.save(app_config.Data_End, "Gcores_albums.json", albumsList, "txt")
 
     # 将专题节目信息添加到播客列表中
@@ -94,14 +97,28 @@ def get_gcores_list(model=None):
             # 节目播放连接
             url ="https://www.gcores.com/radios/"+str(id)
 
+            # 播放量
+            plays = albumsList.get("attributes", {}).get("plays", 0)
+
             radiosList.append({"id": id, "title": title,"desc":desc,"content":content,
                                "duration": duration, "cover": cover,
                                "published_at": published_at, "likes_count": likes_count,
                                "comments_count": comments_count,"bookmarks_count":bookmarks_count,
-                               "category": category,"userList": userList,"url":url})
+                               "category": category,"userList": userList,"url":url,"plays":plays})
 
+    radiosList = updateArr(model,"Gcores_Radios.json",radiosList)
     app_Utils.save(app_config.Data_End, "Gcores_Radios.json", radiosList, "txt")
 
+def updateArr(model, fileName,Arr):
+    if model is not None:
+        data_path = os.path.join(app_config.Data_End, fileName)
+        # 读取JSON文件
+        with open(data_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        Arr.append(data)
+
+        return Arr
+    return Arr
 
 if __name__ == "__main__":
     get_gcores_list()

@@ -27,19 +27,20 @@ def parse_and_insert(json_path):
         # 创建表结构
         create_table_sql = """
              CREATE TABLE gcores_radios_data (
-                id BIGINT PRIMARY KEY,
-                title VARCHAR(255) NOT NULL,
-                duration BIGINT NOT NULL,
-                cover VARCHAR(255),
-                published_at varchar(255) NOT NULL,
-                likes_count BIGINT NOT NULL,
-                comments_count BIGINT NOT NULL,
-                category BIGINT NOT NULL,
-                userList VARCHAR(255) NOT NULL,
-                `desc` TEXT ,
-                bookmark_count BIGINT NOT NULL,
-                content TEXT,
-                url VARCHAR(255) NOT NULL,
+                id BIGINT PRIMARY KEY,           -- id
+                title VARCHAR(255) NOT NULL,     -- 标题
+                duration BIGINT NOT NULL,        -- 时长
+                cover VARCHAR(255),             -- 封面url
+                published_at varchar(255) NOT NULL,-- 发布时间
+                likes_count BIGINT NOT NULL,        -- 点赞量
+                comments_count BIGINT NOT NULL,     -- 评论量
+                category BIGINT NOT NULL,           -- 专题id
+                userList TEXT NOT NULL,     -- 参与节目用户id列表，已修改为TEXT类型
+                `desc` TEXT ,                       -- 小标题
+                bookmark_count BIGINT NOT NULL,     -- 收藏数
+                plays BIGINT NOT NULL,              -- 播放量
+                content TEXT,                       -- 博客内容描述
+                url VARCHAR(255) NOT NULL,          -- url
              
                 -- 新增更新时间字段
                 `update` TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
@@ -55,7 +56,7 @@ def parse_and_insert(json_path):
         print("\n执行建表 SQL:\n" + create_table_sql.strip())
         cursor.execute(create_table_sql)
 
-        print("已创建新表 gcores_categories_data")
+        print("已创建新表 gcores_radios_data")  # 修复表名打印错误
 
     # 遍历外层数组
     for value in data:
@@ -73,17 +74,17 @@ def parse_and_insert(json_path):
             value['desc'],
             int(value['bookmarks_count']),
             value['content'],
-            value['url']
-
+            value['url'],
+            value['plays'],
         )
 
         # 生成INSERT语句
         sql = '''
             INSERT INTO gcores_radios_data (
-                id, title, duration, cover, published_at, likes_count, comments_count, category, userList, `desc`, bookmark_count, content, url   
+                id, title, duration, cover, published_at, likes_count, comments_count, category, userList, `desc`, bookmark_count, content, url ,plays  
                 
             ) VALUES (
-                %s, %s, %s, %s, %s,%s, %s, %s, %s, %s,%s, %s, %s
+                %s, %s, %s, %s, %s,%s, %s, %s, %s, %s,%s, %s, %s, %s
             )ON DUPLICATE KEY UPDATE
             id = VALUES(id),
             title = VALUES(title),
@@ -97,7 +98,8 @@ def parse_and_insert(json_path):
             `desc` = VALUES(`desc`),
             bookmark_count = VALUES(bookmark_count),
             content = VALUES(content),
-            url = VALUES(url)
+            url = VALUES(url),
+            plays = VALUES(plays)
         '''
 
         # 添加 SQL 打印

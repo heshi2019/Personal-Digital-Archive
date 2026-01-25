@@ -1,1 +1,0 @@
-// Deprecated. Logic moved to index.html

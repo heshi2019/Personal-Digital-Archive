@@ -47,19 +47,18 @@ python src/Controller_Api_Run.py
 
 ### 前端
 ```angular2html
-cd web
+cd vue
 
 npm install
 
 npm run dev
+
+-- 如果想打包
+npm run build
 ```
 前端目前有一个测试接口，请求豆瓣的电影接口，测试前端渲染用的
 
-
-gemini3生成页面，源码web/chronoflow-vue.zip， 效果非常棒，有完美的按钮交互，动画效果，可惜使用了esm模式+字符串模板，无法在本地正常运行
-
-效果图[点这里](https://ai.studio/apps/drive/1Lug2XR0NEG0f_jRgcR1QPsSQg3gW7utT?fullscreenApplet=true)查看
-
+gemini3生成的页面无法直接使用，用trae重构了下，时间轴展示大量数据时样式有问题
 ## 后续更新
 
 ---
@@ -74,7 +73,7 @@ gemini3生成页面，源码web/chronoflow-vue.zip， 效果非常棒，有完�
 前端页面要如何展示数据，时间轴展示可以提现数据的变化情况，要如何提现，我想要什么样的东西，哪些数据对我是有价值的，哪些数据（决定）是具有深远影响的。
 
 ---
-
+## gemini生成页面问题
 ```angular2html
 
 好，我们来梳理下思路，在页面展示方面gpt告诉我首先确定页面逻辑，再决定页面样式，这样其实也是很好的，

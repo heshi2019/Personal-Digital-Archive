@@ -26,10 +26,12 @@ class GcoresRadiosRepository:
                 published_at TEXT NOT NULL,         -- 发布时间
                 likes_count INTEGER NOT NULL,       -- 点赞数
                 comments_count INTEGER NOT NULL,    -- 评论数
+                bookmark_count INTEGER NOT NULL,    -- 收藏数
+                plays INTEGER NOT NULL,             -- 播放量
                 category INTEGER NOT NULL,          -- 专题ID
                 userList TEXT,                      -- 参与节目用户ID列表
                 desc TEXT,                          -- 小标题
-                bookmark_count INTEGER NOT NULL,    -- 收藏数
+
                 content TEXT,                       -- 播客内容描述
                 url TEXT NOT NULL,                  -- 播客URL
                 updated_at TEXT                     -- 更新时间
@@ -53,11 +55,11 @@ class GcoresRadiosRepository:
             INSERT INTO gcores_radios_data (
                 id, title, duration, cover, published_at,
                 likes_count, comments_count, category, userList,
-                desc, bookmark_count, content, url, updated_at
+                desc, bookmark_count, content, url, updated_at,plays
             ) VALUES (
                 :id, :title, :duration, :cover, :published_at,
                 :likes_count, :comments_count, :category, :userList,
-                :desc, :bookmark_count, :content, :url, :updated_at
+                :desc, :bookmark_count, :content, :url, :updated_at, :plays
             )
             ON CONFLICT(id) DO UPDATE SET
                 title = excluded.title,
@@ -72,7 +74,8 @@ class GcoresRadiosRepository:
                 bookmark_count = excluded.bookmark_count,
                 content = excluded.content,
                 url = excluded.url,
-                updated_at = excluded.updated_at
+                updated_at = excluded.updated_at,
+                plays = excluded.plays
         """, row)
 
     # ---------------------------------------------------
@@ -125,7 +128,8 @@ class GcoresRadiosRepository:
                 int(value['bookmarks_count']),
                 value['content'],
                 value['url'],
-                datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                value['plays']
             )
             read_num +=1
 

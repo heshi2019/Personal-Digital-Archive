@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-dark: #0a0a0a;
+  --grid-color: rgba(255, 255, 255, 0.03);
+  --line-color: #333333;
+  --text-muted: #666666;
+  --text-main: #999999;
+  --accent: #ffffff;
+}
+
+body {
+  background-color: var(--bg-dark);
+  background-image: 
+      linear-gradient(var(--grid-color) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: 40px 40px;
+  color: var(--text-main);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+#app {
+  height: 100vh;
+  width: 100vw;
+}
+
+.timeline-container {
+  cursor: grab;
+  transition: transform 0.1s cubic-bezier(0.2, 0, 0, 1);
+  will-change: transform;
+}
+
+/* 缩放时的平滑过渡 */
+.timeline-container.is-zooming {
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 元素拉伸动画：仅在缩放激活时应用 */
+.zoom-transition-active .tick-element,
+.zoom-transition-active .event-element {
+  transition: left 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.timeline-container:active {
+  cursor: grabbing;
+}
+
+.event-card {
+  background: rgba(20, 20, 20, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid #222;
+  transition: all 0.4s ease;
+}
+
+.event-card:hover {
+  border-color: #444;
+  transform: translateY(-5px);
+  background: rgba(30, 30, 30, 0.9);
+}
+
+.main-axis {
+  height: 1px;
+  background: var(--line-color);
+  width: 4000000px;
+  position: absolute;
+  top: 50%;
+  left: -2000000px;
+  z-index: 5;
+}

@@ -1,5 +1,0 @@
-{
-  "name": "ChronoFlow Vue",
-  "description": "A Vue 3 based horizontal timeline visualizer for personal media collections, featuring zoomable time scales and folder organization.",
-  "requestFramePermissions": []
-}

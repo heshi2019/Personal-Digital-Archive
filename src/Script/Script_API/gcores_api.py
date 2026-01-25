@@ -79,11 +79,31 @@ class GcoresApi:
         self.session.get(Gcores_URL, headers=headers, params=params)
 
     @retry(stop_max_attempt_number=3, wait_fixed=5000)
-    def get_Radios(self):
+    def get_Radios(self,model):
+        max_id = 0
+
         radiosList = []
         categoriesList = {}
         usersList = {}
         albumsList = {}
+
+        # 获取最大id
+        if model is not None:
+            data_path = os.path.join(app_config.Data_End, 'Gcores_Radios.json')
+
+            # 读取JSON文件
+            with open(data_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+
+            read_num = 0
+            # 遍历外层数组
+            for value in data:
+                # 只读第一个
+                max_id = value["id"]
+                break
+
+
+
 
         """获取播客列表"""
         self.get_HomePage()
@@ -143,6 +163,21 @@ class GcoresApi:
                                             radiosList,categoriesList,usersList,albumsList)
                     i += 20  # 只有成功时才递增
                     retry_count = 0  # 重置重试计数器
+
+                    # 增量获取
+                    stop_all = False
+                    if model is not None and max_id != 0:
+                        for i in data:
+                            getId = i.get("id")
+
+                            if getId == max_id:
+                                stop_all = True
+                                break
+
+                    if stop_all:
+                        break
+
+
                 else:
                     raise Exception(f"获取机核博客失败： {r}")
 
@@ -155,6 +190,9 @@ class GcoresApi:
                     print(f"达到最大重试次数，跳过第{i}条数据")
                     i += 20  # 强制前进以避免死循环
                     retry_count = 0
+
+        self.updateArr(model,radiosList,categoriesList,usersList,albumsList)
+
 
         app_Utils.save(app_config.Data_Star, "Gcores_Radios.json", radiosList, "txt")
         app_Utils.save(app_config.Data_End, "Gcores_Categories.json", categoriesList, "txt")
@@ -199,6 +237,7 @@ class GcoresApi:
                 likes_count = item.get("attributes", {}).get("likes-count", "")
                 # 评论数
                 comments_count = item.get("attributes", {}).get("comments-count", "")
+
                 # 节目分类，字典
                 category = item.get("relationships", {}).get("category", {}).get("data", {})
                 # 参与节目的用户，列表
@@ -208,11 +247,15 @@ class GcoresApi:
                     userList.append(value.get("id"))
                 # 节目播放连接
                 url = "https://www.gcores.com/radios/" + str(id)
+
+                # 播放量
+                plays = item.get("attributes", {}).get("plays", 0)
+
                 radiosList.append({"id": id, "title": title,"desc":desc,"content":content,
                                    "duration": duration, "cover": cover,
                                    "published_at": published_at, "likes_count": likes_count,
                                    "comments_count": comments_count,"bookmarks_count":bookmarks_count,
-                                   "category": category,"userList": userList,"url":url})
+                                   "category": category,"userList": userList,"url":url,"plays":plays})
             # 分类
             elif item.get("type") == "categories":
                 if categoriesList.get("id", None) is None:
@@ -382,3 +425,31 @@ class GcoresApi:
             print(f"获取机核用户详情失败： {e}\n"
                   f"用户ID：{id}\n"
                   f"返回值：{r.text}")
+
+    def updateArr(self,model,radiosList,categoriesList,usersList,albumsList):
+        if model is not None:
+
+            data_path = os.path.join(app_config.Data_Star, 'Gcores_Radios.json')
+            # 读取JSON文件
+            with open(data_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            radiosList.append(data)
+
+            data_path = os.path.join(app_config.Data_End, 'Gcores_Categories.json')
+            # 读取JSON文件
+            with open(data_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            categoriesList.append(data)
+
+            data_path = os.path.join(app_config.Data_Star, 'Gcores_User.json')
+            # 读取JSON文件
+            with open(data_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            usersList.append(data)
+
+            data_path = os.path.join(app_config.Data_Star, 'Gcores_albums.json')
+            # 读取JSON文件
+            with open(data_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            albumsList.append(data)
+
