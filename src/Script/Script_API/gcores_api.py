@@ -1,3 +1,4 @@
+import copy
 import json
 import re
 import os
@@ -167,8 +168,8 @@ class GcoresApi:
                     # 增量获取
                     stop_all = False
                     if model is not None and max_id != 0:
-                        for i in data:
-                            getId = i.get("id")
+                        for dataOne in data:
+                            getId = dataOne.get("id")
 
                             if getId == max_id:
                                 stop_all = True
@@ -191,6 +192,13 @@ class GcoresApi:
                     i += 20  # 强制前进以避免死循环
                     retry_count = 0
 
+        # 深拷贝，规避python地址传递问题
+        original_radios = copy.deepcopy(radiosList)
+        original_categoriesList = copy.deepcopy(categoriesList)
+        original_usersList = copy.deepcopy(usersList)
+        original_albumsList = copy.deepcopy(albumsList)
+
+
         self.updateArr(model,radiosList,categoriesList,usersList,albumsList)
 
 
@@ -199,7 +207,7 @@ class GcoresApi:
         app_Utils.save(app_config.Data_Star, "Gcores_User.json", usersList, "txt")
         app_Utils.save(app_config.Data_Star, "Gcores_albums.json", albumsList, "txt")
 
-        return radiosList,categoriesList,usersList,albumsList
+        return original_radios,original_categoriesList,original_usersList,original_albumsList
     # 数据筛选
     def get_saveRadiosData(self,radios,
                            radiosList,categoriesList,usersList,albumsList):
@@ -307,7 +315,7 @@ class GcoresApi:
                 print(f"未分类数据：{item}")
 
     @retry(stop_max_attempt_number=3, wait_fixed=5000)
-    def get_Albums(self,albumsIds):
+    def get_Albums(self,albumsIds,model):
 
         for key,value in albumsIds.items():
 
@@ -410,7 +418,7 @@ class GcoresApi:
             "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
         }
 
-        print(f"正在同步:{id} 用户")
+        print(f"正在同步用户: {id} ")
 
         try:
 
@@ -433,23 +441,23 @@ class GcoresApi:
             # 读取JSON文件
             with open(data_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-            radiosList.append(data)
+            radiosList.extend(data)
 
             data_path = os.path.join(app_config.Data_End, 'Gcores_Categories.json')
             # 读取JSON文件
             with open(data_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-            categoriesList.append(data)
+            categoriesList.update(data)
 
             data_path = os.path.join(app_config.Data_Star, 'Gcores_User.json')
             # 读取JSON文件
             with open(data_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-            usersList.append(data)
+            usersList.update(data)
 
             data_path = os.path.join(app_config.Data_Star, 'Gcores_albums.json')
             # 读取JSON文件
             with open(data_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-            albumsList.append(data)
+            albumsList.update(data)
 

@@ -16,10 +16,13 @@ THIRTY_DAYS_MS = 2592000000
         End文件夹中的Gcores_Categories.json在gcores_api.py中保存
 '''
 def get_gcores_list(model=None):
+    if model is not None:
+        print("开始增量获取机核电台信息")
+    else:
+        print("开始全量获取机核电台信息")
 
     gcores_api = GcoresApi()
 
-    print("开始获取机核电台信息")
     # 初始化播客列表，初步分类
     radiosList,categoriesList,usersList,albumsList = gcores_api.get_Radios(model)
 
@@ -48,7 +51,7 @@ def get_gcores_list(model=None):
     app_Utils.save(app_config.Data_End, "Gcores_User.json", usersList, "txt")
 
     # 获取每一个专题的具体节目信息
-    albumsList = gcores_api.get_Albums(albumsList)
+    albumsList = gcores_api.get_Albums(albumsList,model)
 
     albumsList = updateArr(model,"Gcores_albums.json",albumsList)
     app_Utils.save(app_config.Data_End, "Gcores_albums.json", albumsList, "txt")
@@ -107,6 +110,10 @@ def get_gcores_list(model=None):
                                "category": category,"userList": userList,"url":url,"plays":plays})
 
     radiosList = updateArr(model,"Gcores_Radios.json",radiosList)
+
+    if model is not None:
+        print("增量获取机核电台信息完成")
+
     app_Utils.save(app_config.Data_End, "Gcores_Radios.json", radiosList, "txt")
 
 def updateArr(model, fileName,Arr):
@@ -115,7 +122,12 @@ def updateArr(model, fileName,Arr):
         # 读取JSON文件
         with open(data_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
-        Arr.append(data)
+
+        if type(data) == list:
+            # Arr.append(data)
+            Arr.extend(data)
+        elif type(data) == dict:
+            Arr.update(data)
 
         return Arr
     return Arr
