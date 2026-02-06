@@ -107,13 +107,15 @@ def get_gcores_list(model=None):
                                "duration": duration, "cover": cover,
                                "published_at": published_at, "likes_count": likes_count,
                                "comments_count": comments_count,"bookmarks_count":bookmarks_count,
-                               "category": category,"userList": userList,"url":url,"plays":plays})
+                               "category": category,"userList": userList,"url":url,"plays":plays if plays else 0})
 
     radiosList = updateArr(model,"Gcores_Radios.json",radiosList)
 
     if model is not None:
         print("增量获取机核电台信息完成")
-
+    elif model is None:
+        print("全量获取机核电台信息完成")
+ 
     app_Utils.save(app_config.Data_End, "Gcores_Radios.json", radiosList, "txt")
 
 def updateArr(model, fileName,Arr):
@@ -133,4 +135,4 @@ def updateArr(model, fileName,Arr):
     return Arr
 
 if __name__ == "__main__":
-    get_gcores_list()
+    get_gcores_list(1)

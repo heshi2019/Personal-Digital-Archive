@@ -263,7 +263,7 @@ class GcoresApi:
                                    "duration": duration, "cover": cover,
                                    "published_at": published_at, "likes_count": likes_count,
                                    "comments_count": comments_count,"bookmarks_count":bookmarks_count,
-                                   "category": category,"userList": userList,"url":url,"plays":plays})
+                                   "category": category,"userList": userList,"url":url,"plays":plays if plays else 0})
             # 分类
             elif item.get("type") == "categories":
                 if categoriesList.get("id", None) is None:
