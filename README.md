@@ -1,7 +1,3 @@
-# 本项目为个人学习python（后端），gemini3生成（前端）
-
----
-
 ## 简介
 
 本项目是一个个人数据收集，将你在互联网上留在各个app和网站的个人数据收集起来。使用时间轴前端串联展示。
@@ -25,7 +21,6 @@
 
  - 数据导入MYSQL   已完成
  - 数据导入SQLite  已完成
-
 
 
 ---
@@ -62,6 +57,7 @@ npm run build
 gemini3生成的页面无法直接使用，用trae重构了下，时间轴展示大量数据时样式有问题
 
 
+
 ---
 ## 后续更新
 
@@ -72,8 +68,48 @@ gemini3生成的页面无法直接使用，用trae重构了下，时间轴展示
 | 后端 | 持续运行     | -             | 脚本完善，定时执行                      | 筛选可重复执行脚本                                    |                        |
 | 前端 | 页面构建     | 唯一一版可本地运行的vue | gemini3生成样式，vue3脚手架项目          | gemini3无法直接生成vue脚手架项目                        |                        |
 | 前端 | 展示逻辑     | -             | 时间轴四级颗粒度展示（all，year，month，day） | 如何聚合数据，哪些数据是有价值的                             |                        |
+| 前端 | 自动构建离线页面 |  -            |如项目[QZoneExport](https://github.com/ShunCai/QZoneExport)所示 |                                              |                        |
 
 前端页面要如何展示数据，时间轴展示可以提现数据的变化情况，要如何提现，我想要什么样的东西，哪些数据对我是有价值的，哪些数据（决定）是具有深远影响的。
+
+---
+
+## 项目结构
+
+```
+├── LifeBitsCollector
+│   ├── .github
+│   │   └──workflows
+│   │       └──weread.yml    # 微信读书自动部署脚本
+│   ├── LifeBitsCollector
+│   │   ├── BasicDate        # 基础数据
+│   │   │   ├── flomo        # flomo
+│   │   │   └── zhangyue     # 掌阅
+│   │   │       ├── 掌阅笔记  	    # 笔记
+│   │   │       │   └── ……  	    # 具体笔记
+│   │   │       └── 掌阅-批注书籍  	# 所有书籍
+│   │   ├── Config           # 工具类
+│   │   │   ├── config_manager.py  	# 工具类
+│   │   │   └── mysql_conn.py     	# 数据库连接工具
+│   │   ├── Data_End         # 结果输出文件夹
+│   │   │   ├── douban.json  	# 豆瓣数据
+│   │   │   ├── du.json      	# 网易蜗牛读书数据
+│   │   │   ├── flyme.json   	# 魅族便签数据
+│   │   │   ├── weread.json  	# 微信读书数据
+│   │   │   ├── flyme.json   	# 魅族便签数据
+│   │   │   └── weread.json  	# 微信读书数据
+│   │   ├── Data_Star        # 相关API返回数据，如需二次开发，可在这里查看原始数据
+│   │   │   └── ……
+│   │   ├── FlymeImages      # 魅族便签图片
+│   │   │   └── ……
+│   │   ├── ImportMySQL      # mysql导入脚本
+│   │   │   └── ……
+│   │   └── JsonExample      # 示例json文件
+│   │       └── ……
+│   ├── config.yaml          # 配置文件
+│   ├── requitrmrnts.txt     # 第三方Python包
+│   └── setup.py        
+```
 
 ---
 

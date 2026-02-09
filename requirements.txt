@@ -5,4 +5,4 @@ pillow
 piexif
 hachoir
 pyyaml
-mysql
+mysql-connector-python
