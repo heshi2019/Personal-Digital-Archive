@@ -86,3 +86,79 @@ def serve_file_by_path(full_path: str):
     
     # 返回文件响应
     return FileResponse(full_path, media_type=mime_type or 'application/octet-stream')
+
+@app.post("/api/gcores/radios")
+def get_gcores_radios(request_data: dict):
+    """
+    获取Gcores radios数据，支持分页和排序
+    """
+    page = request_data.get('page', 1)
+    page_size = request_data.get('pageSize', 20)
+    sort = request_data.get('sort', [])
+    
+    rows = controllerSelectSQLite.select_gcores_radios(page, page_size, sort)
+    if not rows:
+        raise HTTPException(status_code=404, detail="not found")
+    return rows
+
+
+
+@app.get("/api/gcores/daily-program-count")
+def get_daily_program_count():
+    """
+    统计每个日期发布的节目数量
+    """
+    rows = controllerSelectSQLite.get_daily_program_count()
+    if not rows:
+        raise HTTPException(status_code=404, detail="not found")
+    return rows
+
+@app.get("/api/gcores/daily-program-count-exclude-resident")
+def get_daily_program_count_exclude_resident():
+    """
+    统计每个日期发布的节目数量（去掉入驻博客）
+    """
+    rows = controllerSelectSQLite.get_daily_program_count_exclude_resident()
+    if not rows:
+        raise HTTPException(status_code=404, detail="not found")
+    return rows
+
+@app.get("/api/gcores/program-user-count")
+def get_program_user_count():
+    """
+    计算每个节目参与的用户个数，并展示URL（去掉入驻博客）
+    """
+    rows = controllerSelectSQLite.get_program_user_count()
+    if not rows:
+        raise HTTPException(status_code=404, detail="not found")
+    return rows
+
+@app.get("/api/gcores/program-duration-by-time")
+def get_program_duration_by_time():
+    """
+    按发布时间时间线展示每个节目的时长（去掉入驻博客）
+    """
+    rows = controllerSelectSQLite.get_program_duration_by_time()
+    if not rows:
+        raise HTTPException(status_code=404, detail="not found")
+    return rows
+
+@app.get("/api/gcores/user-program-count")
+def get_user_program_count():
+    """
+    统计每个用户参加节目的次数（按次数降序排列）
+    """
+    rows = controllerSelectSQLite.get_user_program_count()
+    if not rows:
+        raise HTTPException(status_code=404, detail="not found")
+    return rows
+
+@app.get("/api/gcores/daily-registered-users")
+def get_daily_registered_users():
+    """
+    按日期统计每天注册用户数，并给出累计用户总数
+    """
+    rows = controllerSelectSQLite.get_daily_registered_users()
+    if not rows:
+        raise HTTPException(status_code=404, detail="not found")
+    return rows

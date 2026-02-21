@@ -9,7 +9,8 @@
         "published_at": "发布时间",
         "likes_count": 点赞数,
         "comments_count": 评论数,
-        "bookmarks_count": 收藏数,
+        "bookmark_count": 收藏数,
+        "plays": 播放量,
         "category": {
             "type": "所属分类",
             "id": "分类id"

@@ -241,6 +241,8 @@ class GcoresApi:
                 # 发布时间
                 published_at = item.get("attributes", {}).get("published-at", "")
                 published_at = datetime.fromisoformat(published_at).strftime('%Y-%m-%d %H:%M:%S')
+                if published_at <= "2025-01-01 23:59:59":
+                    pass
                 # 点赞数
                 likes_count = item.get("attributes", {}).get("likes-count", "")
                 # 评论数

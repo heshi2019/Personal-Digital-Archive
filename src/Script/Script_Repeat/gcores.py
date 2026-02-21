@@ -135,4 +135,18 @@ def updateArr(model, fileName,Arr):
     return Arr
 
 if __name__ == "__main__":
-    get_gcores_list(1)
+    get_gcores_list()
+
+
+
+# 目前的用户表，是参与博客的用户，要拿所有用户要用下面的请求一点点拿，id是自增的
+# get
+# https://www.gcores.com/gapi/v1/users/用户id
+# 用户总数数大概在90万到一百万之间
+#
+#
+# 返回值
+#
+# {"data":{"id":"900000","type":"users","attributes":{"nickname":"mwv","thumb":"298a4cd9129f04c80640feb9e29bbc3b-750-750.jpg","location":null,"is-fresh":false,"intro":null,"sex":null,"followers-count":0,"followees-count":0,"created-at":"2025-11-02T11:23:33.000+08:00","is-deleted":false,"has-membership":false,"is-founder-member":false,"is-treated":true,"disable-image-download":false,"medals-count":0,"certified-info":null,"is-gcores-official":false,"is-pro":false,"using-grpg-avatar":false,"is-brand":false,"brand-label":null,"products-count":0},"relationships":{"auto-renewal-records":{},"talks":{},"notifications":{},"latest-articles":{},"latest-videos":{},"latest-radios":{},"latest-talks":{},"medal-centers":{},"user-guide-centers":{},"subscribed-entries":{},"subscribed-entities":{},"subscribed-games":{},"subscribed-films":{},"subscribed-tags":{},"subscribed-categories":{},"subscribed-albums":{},"subscribed-collections":{},"subscribed-topics":{},"subscribed-talks":{},"subscribed-portfolios":{},"involvements":{},"entries":{},"games":{},"entities":{},"originals":{},"articles":{},"hosted-articles":{},"radios":{},"videos":{},"self-promotions":{},"followers":{},"followees":{},"mutual-friends":{},"followers-not-mutual":{},"followees-not-mutual":{},"preference":{},"achievement":{},"bookmarks":{},"folders":{},"subscriptions":{},"tickets":{},"giveaway-records":{},"medals":{},"user-annual-summary":{},"user-annual-summaries":{},"grpg-inventory-items":{},"grpg-characters":{},"goty-vote":{},"goty-votes":{},"portfolios":{},"users-medals":{},"product-codes":{},"products":{},"acceding-games":{},"editorial-articles":{},"latest-editorial-article":{}},"meta":{"followship-id":null,"inverse-followship-id":null}}}
+#
+
