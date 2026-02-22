@@ -147,7 +147,7 @@ if __name__ == "__main__":
     execution = MainExecution()
 
 
-    #  需要下载数据的脚本（小米运动，钱迹，flomo数据入库）
+    #  需要下载数据的脚本（小米运动，钱迹，flomo数据入库-备用）
     # execution.jsonExecution()
 
     #  高频重复执行的脚本（flomo，豆瓣）
