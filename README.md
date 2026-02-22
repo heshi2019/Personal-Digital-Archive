@@ -45,14 +45,17 @@ python src/Controller_Api_Run.py
 
 ### 前端
 ```angular2html
+-- 整体前端
 cd vue
 
 npm install
 
 npm run dev
 
--- 如果想打包
-npm run build
+-- gcores前端
+cd vue_gcores
+
+npm run dev
 ```
 前端目前有一个测试接口，请求豆瓣的电影接口，测试前端渲染用的
 
