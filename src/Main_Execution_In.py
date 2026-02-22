@@ -102,13 +102,13 @@ class MainExecution:
         repository.import_flomo_SQLite()
 
 
-    def GcoresAndScannerExecution(self):
+    def Gcores(self, model=None):
         '''
             机核数据获取与入库
         '''
 
         # 机核
-        get_gcores_list()
+        get_gcores_list(model)
 
         # 机核数据
         repository_Categories = GcoresCategoriesRepository(self.db_execution)
@@ -122,6 +122,10 @@ class MainExecution:
         # 机核用户数据入库
         repository_User.import_GcoresUser_SQLite()
 
+    def Scanner(self):
+        '''
+            本地文件扫描入库
+        '''
         # 文件扫描
         scanner = Scanner()
 
@@ -147,25 +151,16 @@ if __name__ == "__main__":
     # execution.jsonExecution()
 
     #  高频重复执行的脚本（flomo，豆瓣）
-    # execution.RepeatExecution()
+    execution.RepeatExecution()
 
-    # 较重的脚本（机核数据，扫描本地）
-    execution.GcoresAndScannerExecution()
+    # 机核，可增量可全量
+    # execution.Gcores(1)
+
+    # 本地文件扫描入库
+    # execution.Scanner()
 
     # 一次性执行的脚本（读书三个平台，flyme笔记）
-    execution.OneExecution()
-
-'''
-我们来讨论下这些数据，我想要什么
-
-机核播客数据，
-时间轴展示，前端可以按点赞，评论，播放量筛选，单字段或多字段，还要选择专题。我想看到最高/最低的数据的节目，并且想要看到播客点赞量的趋势
-用户关注数最高最低，专题关注量最高最低
+    # execution.OneExecution()
 
 
-其他呢，其他数据要怎么展示
-
-
-
-'''
 
