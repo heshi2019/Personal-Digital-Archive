@@ -123,6 +123,16 @@ function formatDate(value) {
   return `${y}-${m}-${day} ${hh}:${mm}`
 }
 
+function formatNumber(value) {
+  if (value == null || value === '') return '0'
+  const num = Number(value)
+  if (Number.isNaN(num)) return '0'
+  if (num >= 10000) {
+    return (num / 10000).toFixed(1) + '万'
+  }
+  return String(num)
+}
+
 onMounted(() => {
   if (currentPage.value === 'blog') {
     fetchBlogs()
@@ -205,7 +215,6 @@ onMounted(() => {
               <thead>
                 <tr>
                   <th>标题</th>
-                  <th>小标题</th>
                   <th>博客介绍</th>
                   <th class="sortable" @click="toggleSort('duration')">
                     时长
@@ -215,7 +224,6 @@ onMounted(() => {
                       <span v-else>⇅</span>
                     </span>
                   </th>
-                  <th>封面</th>
                   <th class="sortable" @click="toggleSort('published_at')">
                     发布时间
                     <span class="sort-indicator">
@@ -256,8 +264,6 @@ onMounted(() => {
                       <span v-else>⇅</span>
                     </span>
                   </th>
-                  <th>所属分类</th>
-                  <th>用户</th>
                   <th>操作</th>
                 </tr>
               </thead>
@@ -266,30 +272,13 @@ onMounted(() => {
                   <td class="cell-title">
                     {{ item.title }}
                   </td>
-                  <td class="cell-subtitle">{{ item.desc }}</td>
                   <td class="cell-desc">{{ item.content }}</td>
                   <td>{{ formatDuration(item.duration) }}</td>
-                  <td class="cell-cover">
-                    <span v-if="item.cover">{{ item.cover }}</span>
-                    <span v-else>-</span>
-                  </td>
                   <td>{{ formatDate(item.published_at) }}</td>
-                  <td>{{ item.likes_count ?? 0 }}</td>
-                  <td>{{ item.comments_count ?? 0 }}</td>
-                  <td>{{ item.bookmark_count ?? 0 }}</td>
-                  <td>{{ item.plays ?? 0 }}</td> 
-                  <td>
-                    <span v-if="item.category && item.category.type">
-                      {{ item.category.type }}
-                    </span>
-                    <span v-else>-</span>
-                  </td>
-                  <td class="cell-users">
-                    <span v-if="item.userList && item.userList.length">
-                      {{ Array.isArray(item.userList) ? item.userList.join('、') : item.userList }}
-                    </span>
-                    <span v-else>-</span>
-                  </td>
+                  <td>{{ formatNumber(item.likes_count) }}</td>
+                  <td>{{ formatNumber(item.comments_count) }}</td>
+                  <td>{{ formatNumber(item.bookmark_count) }}</td>
+                  <td>{{ formatNumber(item.plays) }}</td> 
                   <td>
                     <a v-if="item.url" :href="item.url" target="_blank" class="link">
                       查看
