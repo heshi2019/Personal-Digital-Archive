@@ -135,7 +135,7 @@ def updateArr(model, fileName,Arr):
     return Arr
 
 if __name__ == "__main__":
-    get_gcores_list()
+    get_gcores_list(1)
 
 
 

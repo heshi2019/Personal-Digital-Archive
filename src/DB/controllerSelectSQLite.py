@@ -51,7 +51,16 @@ class controllerSelectSQLite:
         统计每个日期发布的节目数量
         :return: 查询结果列表
         """
-        sql = f"SELECT DATE(published_at) AS publish_date, COUNT(*) AS daily_program_count FROM gcores_radios_data GROUP BY publish_date ORDER BY publish_date;"
+        sql = """
+             SELECT
+                DATE(published_at) AS publish_date,
+                COUNT(*) AS daily_program_count,
+                GROUP_CONCAT(title, ' <|> ') AS titles
+                FROM gcores_radios_data
+                WHERE category != 93
+                GROUP BY DATE(published_at)
+                ORDER BY publish_date;
+               """
         return self.db.query(sql)
 
     def get_daily_program_count_exclude_resident(self):
@@ -61,7 +70,8 @@ class controllerSelectSQLite:
         """
         sql = """
         SELECT DATE(published_at) AS publish_date, 
-               COUNT(*) AS daily_program_count  
+               COUNT(*) AS daily_program_count,
+               GROUP_CONCAT(title, ' <|> ') AS titles  
         FROM gcores_radios_data 
         where category != 93
         GROUP BY publish_date
@@ -75,7 +85,7 @@ class controllerSelectSQLite:
         :return: 查询结果列表
         """
         sql = """
-        SELECT id, title, url,  
+        SELECT id, title, url, published_at, 
                LENGTH(userList) - LENGTH(REPLACE(userList, ',', '')) + 1 AS user_count
         FROM gcores_radios_data 
         where category != 93;

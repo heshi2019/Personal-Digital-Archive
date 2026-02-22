@@ -21,6 +21,8 @@ Gcores_URL = "https://www.gcores.com"
 # 用户id
 Gcores_USER_URL = "https://www.gcores.com/gapi/v1/users/"
 
+# 一个播客
+Gcores_Radios_One_URL = 'https://www.gcores.com/gapi/v1/radios/'
 # 某个类型的电台
 # https://www.gcores.com/gapi/v1/categories/45/originals
 
@@ -260,6 +262,32 @@ class GcoresApi:
 
                 # 播放量
                 plays = item.get("attributes", {}).get("plays", 0)
+
+                if plays == 0:
+                    if id != "0":
+                        headers = {
+                            "Host": "www.gcores.com",
+                            "Connection": "keep-alive",
+                            "sec-ch-ua-platform": "Windows",
+                            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
+                            "Content-Type": "application/vnd.api+json",
+                            "sec-ch-ua-mobile": "?0",
+                            "Accept": "*/*",
+                            "Sec-Fetch-Site": "same-origin",
+                            "Sec-Fetch-Mode": "cors",
+                            "Sec-Fetch-Dest": "empty",
+                            "Referer": "https://www.gcores.com/radios",
+                            "Accept-Encoding": "gzip, deflate, br, zstd",
+                            "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+                        }
+
+
+                        r = self.session.get(Gcores_Radios_One_URL+id, headers=headers)
+
+                        if r.ok:
+                            plays = r.json().get("data",{}).get("attributes",{}).get("plays",0)
+                            plays = plays if plays else 0
+                        print(f"重新获取播放量：{plays}")
 
                 radiosList.append({"id": id, "title": title,"desc":desc,"content":content,
                                    "duration": duration, "cover": cover,

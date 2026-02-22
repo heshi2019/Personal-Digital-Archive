@@ -7,6 +7,7 @@ const loading = ref(false)
 const error = ref('')
 const chartInstance1 = ref(null)
 const chartInstance2 = ref(null)
+const dateMapRef = ref(new Map())
 
 const apiUrl = 'http://localhost:5000/api/gcores/radios'
 
@@ -70,6 +71,9 @@ async function processData() {
       dateData.count++
     })
 
+    // 保存 dateMap 供后续使用
+    dateMapRef.value = dateMap
+
     // 生成日期范围
     const dateRange = []
     for (let d = new Date(minDate); d <= maxDate; d.setDate(d.getDate() + 1)) {
@@ -108,7 +112,6 @@ async function processData() {
     // 获取并处理额外的数据
     await fetchAdditionalData()
   } catch (error) {
-    console.error('处理数据时出错:', error)
     error.value = '数据处理失败: ' + error.message
   }
 }
@@ -123,7 +126,6 @@ async function fetchAdditionalData() {
       const dailyCountRes = await fetch('http://localhost:5000/api/gcores/daily-program-count')
       results.push(await dailyCountRes.json())
     } catch (err) {
-      console.error('获取每日节目数量失败:', err)
       results.push([])
     }
     
@@ -132,7 +134,6 @@ async function fetchAdditionalData() {
       const dailyCountExcludeRes = await fetch('http://localhost:5000/api/gcores/daily-program-count-exclude-resident')
       results.push(await dailyCountExcludeRes.json())
     } catch (err) {
-      console.error('获取每日节目数量（去掉入驻博客）失败:', err)
       results.push([])
     }
     
@@ -141,7 +142,6 @@ async function fetchAdditionalData() {
       const programUserCountRes = await fetch('http://localhost:5000/api/gcores/program-user-count')
       results.push(await programUserCountRes.json())
     } catch (err) {
-      console.error('获取每个节目参与的用户个数失败:', err)
       results.push([])
     }
     
@@ -150,7 +150,6 @@ async function fetchAdditionalData() {
       const programDurationRes = await fetch('http://localhost:5000/api/gcores/program-duration-by-time')
       results.push(await programDurationRes.json())
     } catch (err) {
-      console.error('获取每个节目的时长失败:', err)
       results.push([])
     }
     
@@ -159,7 +158,6 @@ async function fetchAdditionalData() {
       const userProgramCountRes = await fetch('http://localhost:5000/api/gcores/user-program-count')
       results.push(await userProgramCountRes.json())
     } catch (err) {
-      console.error('获取每个用户参加节目的次数失败:', err)
       results.push([])
     }
     
@@ -168,14 +166,12 @@ async function fetchAdditionalData() {
       const registeredUsersRes = await fetch('http://localhost:5000/api/gcores/daily-registered-users')
       results.push(await registeredUsersRes.json())
     } catch (err) {
-      console.error('获取每日注册用户数失败:', err)
       results.push([])
     }
     
     // 处理并渲染数据
     renderAdditionalCharts(...results)
   } catch (err) {
-    console.error('请求额外数据失败:', err)
   }
 }
 
@@ -187,14 +183,6 @@ function renderAdditionalCharts(
   userProgramCountData, 
   registeredUsersData
 ) {
-  console.log('renderAdditionalCharts 接收到的数据:', {
-    dailyCountData,
-    dailyCountExcludeData,
-    programUserCountData,
-    programDurationData,
-    userProgramCountData,
-    registeredUsersData
-  })
   
   // 渲染每日节目数量图表
   renderChart2(dailyCountData)
@@ -219,13 +207,10 @@ function renderAdditionalCharts(
 function renderChart2(data) {
   const chartElement = document.getElementById('chart2')
   if (!chartElement) {
-    console.error('找不到 chart2 元素')
     return
   }
   
-  if (!chartInstance2.value) {
-    chartInstance2.value = echarts.init(chartElement)
-  }
+  const chartInstance5 = echarts.init(chartElement)
 
   // 映射后端返回的数据格式，不限制数量
   const sortedData = [...data].sort((a, b) => new Date(a.publish_date) - new Date(b.publish_date))
@@ -241,6 +226,25 @@ function renderChart2(data) {
       trigger: 'axis',
       axisPointer: {
         type: 'cross'
+      },
+      formatter: function(params) {
+        if (sortedData.length === 0) return '暂无数据'
+        const dataIndex = params[0].dataIndex
+        const item = sortedData[dataIndex]
+        
+        let result = `日期: ${item.publish_date}<br/>节目数量: ${item.daily_program_count}`
+        
+        if (item.titles && item.titles !== '') {
+          const titleList = String(item.titles || '').split('<|>')
+          result += '<br/><br/>节目列表:<br/>'
+          titleList.forEach((title, index) => {
+            if (title && title.trim()) {
+              result += `${index + 1}. ${title}<br/>`
+            }
+          })
+        }
+        
+        return result
       }
     },
     grid: {
@@ -278,14 +282,18 @@ function renderChart2(data) {
     ]
   }
 
-  chartInstance2.value.setOption(option)
+  chartInstance5.setOption(option)
+
+  // 添加响应式调整
+  window.addEventListener('resize', () => {
+    chartInstance5.resize()
+  })
 }
 
 // 渲染每日节目数量（去掉入驻博客）图表
 function renderChart3(data) {
   const chartElement = document.getElementById('chart3')
   if (!chartElement) {
-    console.error('找不到 chart3 元素')
     return
   }
   
@@ -305,6 +313,25 @@ function renderChart3(data) {
       trigger: 'axis',
       axisPointer: {
         type: 'cross'
+      },
+      formatter: function(params) {
+        if (sortedData.length === 0) return '暂无数据'
+        const dataIndex = params[0].dataIndex
+        const item = sortedData[dataIndex]
+        
+        let result = `日期: ${item.publish_date}<br/>节目数量: ${item.daily_program_count}`
+        
+        if (item.titles && item.titles !== '') {
+          const titleList = String(item.titles || '').split('<|>')
+          result += '<br/><br/>节目列表:<br/>'
+          titleList.forEach((title, index) => {
+            if (title && title.trim()) {
+              result += `${index + 1}. ${title}<br/>`
+            }
+          })
+        }
+        
+        return result
       }
     },
     grid: {
@@ -354,15 +381,12 @@ function renderChart3(data) {
 let chartInstance4 = null
 
 function renderChart4(data) {
-  console.log('chart4 接收到的数据:', data)
   const chartElement = document.getElementById('chart4')
   if (!chartElement) {
-    console.error('找不到 chart4 元素')
     return
   }
   
   if (!data || !Array.isArray(data)) {
-    console.error('chart4 数据格式错误:', data)
     return
   }
   
@@ -372,22 +396,9 @@ function renderChart4(data) {
   }
 
   // 按时间排序，不限制数量
-  let sortedData = []
-  let dates = []
-  let values = []
-  
-  try {
-    sortedData = [...data].sort((a, b) => {
-      if (!a || !b || !a.published_at || !b.published_at) return 0
-      return new Date(a.published_at) - new Date(b.published_at)
-    })
-    dates = sortedData.map(item => item.published_at ? item.published_at.split(' ')[0] : '')
-    values = sortedData.map(item => item.user_count || 0)
-  } catch (err) {
-    console.error('chart4 数据处理失败:', err)
-  }
-
-  console.log('chart4 处理后的数据:', { sortedData, dates, values })
+  const sortedData = [...data].sort((a, b) => new Date(a.published_at) - new Date(b.published_at))
+  const dates = sortedData.map(item => item.published_at.split(' ')[0])
+  const values = sortedData.map(item => item.user_count || 0)
 
   const option = {
     title: {
@@ -400,8 +411,6 @@ function renderChart4(data) {
         type: 'cross'
       },
       formatter: function(params) {
-        console.log('tooltip params:', params)
-        console.log('sortedData:', sortedData)
         if (!sortedData || sortedData.length === 0) return '暂无数据'
         const dataIndex = params[0]?.dataIndex
         if (dataIndex === undefined) return '暂无数据'
@@ -422,12 +431,11 @@ function renderChart4(data) {
       data: dates.length > 0 ? dates : ['暂无数据'],
       axisLabel: {
         rotate: 60,
-        interval: Math.max(1, Math.ceil(dates.length / 300)),
-        fontSize: 10
+        interval: Math.max(1, Math.ceil(dates.length / 30)),
+        fontSize: 9
       },
       axisTick: {
-        alignWithLabel: true,
-        interval: Math.max(1, Math.ceil(dates.length / 300))
+        alignWithLabel: true
       }
     },
     yAxis: {
@@ -460,7 +468,6 @@ function renderChart4(data) {
 function renderChart5(data) {
   const chartElement = document.getElementById('chart5')
   if (!chartElement) {
-    console.error('找不到 chart5 元素')
     return
   }
   
@@ -535,11 +542,8 @@ function renderChart5(data) {
 let chartInstance6 = null
 
 function renderChart6(data) {
-  console.log('chart6 接收到的数据:', data)
-  console.log('chart6 第一条数据:', data[0])
   const chartElement = document.getElementById('chart6')
   if (!chartElement) {
-    console.error('找不到 chart6 元素')
     return
   }
   
@@ -554,8 +558,6 @@ function renderChart6(data) {
   const counts = limitedData.map(item => item.programs_joined)
   const urls = limitedData.map(item => item.user_url)
   
-  console.log('chart6 处理后的数据:', { limitedData, users, counts, urls })
-
   const option = {
     title: {
       text: '每个用户参与的节目数',
@@ -651,10 +653,8 @@ function renderChart6(data) {
 
 // 渲染每日注册用户数图表
 function renderChart7(data) {
-  console.log('chart7 接收到的数据:', data)
   const chartElement = document.getElementById('chart7')
   if (!chartElement) {
-    console.error('找不到 chart7 元素')
     return
   }
   
@@ -665,8 +665,6 @@ function renderChart7(data) {
   const dates = sortedData.map(item => item.register_date)
   const dailyValues = sortedData.map(item => item.daily_registered_users)
   const cumulativeValues = sortedData.map(item => item.total_users_to_date)
-
-  console.log('chart7 处理后的数据:', { sortedData, dates, dailyValues, cumulativeValues })
 
   const option = {
     title: {
@@ -739,13 +737,10 @@ function renderChart7(data) {
 function renderChart1(dates, likes, comments, bookmarks, plays) {
   const chartElement = document.getElementById('chart1')
   if (!chartElement) {
-    console.error('找不到 chart1 元素')
     return
   }
   
-  if (!chartInstance1.value) {
-    chartInstance1.value = echarts.init(chartElement)
-  }
+  const chartInstance5 = echarts.init(chartElement)
 
   const option = {
     title: {
@@ -756,6 +751,34 @@ function renderChart1(dates, likes, comments, bookmarks, plays) {
       trigger: 'axis',
       axisPointer: {
         type: 'cross'
+      },
+      formatter: function(params) {
+        if (!params || params.length === 0) return '暂无数据'
+        const dataIndex = params[0].dataIndex
+        const date = dates[dataIndex]
+        const dateData = dateMapRef.value.get(date)
+        
+        let result = `日期: ${date}`
+        
+        if (dateData && dateData.items && dateData.items.length > 0) {
+          dateData.items.forEach((item, index) => {
+            if (index > 0) result += '<br/>---<br/>'
+            if (item.title) {
+              result += `<br/>节目名: ${item.title}`
+            }
+            if (item.published_at) {
+              result += `<br/>发布时间: ${item.published_at}`
+            }
+            result += `<br/>点赞数: ${item.likes_count || 0}`
+            result += `<br/>评论数: ${item.comments_count || 0}`
+            result += `<br/>收藏数: ${item.bookmark_count || 0}`
+            result += `<br/>播放量: ${item.plays || 0}`
+          })
+        } else {
+          result += '<br/>当日无节目'
+        }
+        
+        return result
       }
     },
     legend: {
@@ -812,7 +835,11 @@ function renderChart1(dates, likes, comments, bookmarks, plays) {
     ]
   }
 
-  chartInstance1.value.setOption(option)
+  chartInstance5.setOption(option)
+
+  window.addEventListener('resize', () => {
+    chartInstance5.resize()
+  })
 }
 
 function handleResize() {
