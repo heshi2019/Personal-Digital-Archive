@@ -19,35 +19,12 @@ from src.utils.file_move import file_move
 class MainExecution:
     def __init__(self):
         self.db_execution = SQLite_util(app_config.SQLitePath)
+        self.fileMove = file_move()
 
+    def qianjiExecution(self):
 
-
-    def jsonExecution(self):
-        '''
-            读json，处理小米运动数据，钱迹，flomo（备用）
-
-        '''
-        fileMove = file_move()
-
-        try:
-            result = fileMove.unzip_all_zip_files(app_config.Decompress)
-            print(f"\n成功解压的文件夹路径: {result}")
-        except Exception as e:
-            print(f"解压出错: {str(e)}")
-
-
-
-        # 小米运动文件移动
-        fileMove.move_matched_files(
-            source_root=app_config.Decompress,
-            target_dir=app_config.MiSmartBand5,
-            file_names=["*_MiFitness_hlth_center_fitness_data.csv",
-                        "*_MiFitness_user_fitness_data_records.csv",
-                        "*_MiFitness_hlth_center_aggregated_fitness_data.csv"],
-            single_file_move=True
-        )
         # 钱迹文件移动
-        fileMove.move_matched_files(
+        self.fileMove.move_matched_files(
             source_root=app_config.Decompress,
             target_dir=app_config.qianji.path,
             file_names=["QianJi_日常生活*"],
@@ -55,38 +32,66 @@ class MainExecution:
         )
 
         # 钱迹文件改名，移动到end文件夹
-        app_config.rename_and_move_file(
+        self.fileMove.rename_and_move_file(
             source_dir=app_config.qianji.path,  # 源文件夹（仅当前层级）
             target_dir=app_config.Data_End,  # 目标文件夹
             match_pattern="QianJi_日常生活*",  # 模糊匹配规则（如test开头的txt文件）
             new_full_name="qianji.json"  # 新完整名称（含后缀）
         )
 
-        # flomo文件移动
-        # fileMove.move_matched_files(
-        #     source_root=app_config.Decompress,
-        #     target_dir=app_config.Flomo.file_path,
-        #     file_names=["*的笔记*"],
-        #     single_file_move=True
-        # )
-
-        # flomo数据入库
-        # repository = FlomoRepository(self.db_execution)
-        # repository.import_flomo_SQLite()
-
         # 钱迹数据入库
         repository = QianjiRepository(self.db_execution)
         repository.import_Qianji_SQLite()
+
+    def XiaoMiBand5Execution(self):
+        '''
+            小米运动数据入库
+        '''
+
+        try:
+            result = self.fileMove.unzip_all_zip_files(app_config.Decompress)
+            print(f"\n成功解压的文件夹路径: {result}")
+        except Exception as e:
+            print(f"解压出错: {str(e)}")
+
+
+        # 小米运动文件移动
+        self.fileMove.move_matched_files(
+            source_root=app_config.Decompress,
+            target_dir=app_config.MiSmartBand5,
+            file_names=["*_MiFitness_hlth_center_fitness_data.csv",
+                        "*_MiFitness_user_fitness_data_records.csv",
+                        "*_MiFitness_hlth_center_aggregated_fitness_data.csv"],
+            single_file_move=True
+        )
 
         # 小米运动数据入库
         repo = XiaoMiBand5(self.db_execution)
         repo.import_XiaomiBand5()
 
+    def flomoBakExecution(self):
+        '''
+            读json，处理小米运动数据，钱迹，flomo（备用）
+
+        '''
+
+        # flomo文件移动
+        self.fileMove.move_matched_files(
+            source_root=app_config.Decompress,
+            target_dir=app_config.Flomo.file_path,
+            file_names=["*的笔记*"],
+            single_file_move=True
+        )
+
+        # flomo数据入库
+        repository = FlomoRepository(self.db_execution)
+        repository.import_flomo_SQLite()
+
+
     def RepeatExecution(self):
         '''
             可高频重复执行的脚本，flomo，豆瓣
         '''
-
 
         # 豆瓣
         get_douban_list()
@@ -147,11 +152,18 @@ if __name__ == "__main__":
     execution = MainExecution()
 
 
-    #  需要下载数据的脚本（小米运动，钱迹，flomo数据入库-备用）
-    # execution.jsonExecution()
+    #  需要下载数据的脚本
+    # flomo数据入库 - 备用
+    # execution.flomoBakExecution()
+
+    # 钱迹
+    execution.qianjiExecution()
+
+    # 小米运动
+    # execution.XiaoMiBand5Execution()
 
     #  高频重复执行的脚本（flomo，豆瓣）
-    execution.RepeatExecution()
+    # execution.RepeatExecution()
 
     # 机核，可增量可全量
     # execution.Gcores(1)

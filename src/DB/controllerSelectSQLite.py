@@ -151,6 +151,35 @@ class controllerSelectSQLite:
         """
         return self.db.query(sql)
 
+    def get_qianji(self):
+        """
+        按日期统计每天注册用户数，并给出累计用户总数
+        :return: 查询结果列表
+        """
+
+        sql = """"
+        SELECT date,category,type,money,remark,`from`,target,asset 
+            FROM "qianji_data" 
+            ORDER BY date desc;
+        """
+        return self.db.query(sql)
+
+    def get_flomo(self):
+        """
+        按日期统计每天的钱数变化
+        :return: 查询结果列表
+        """
+
+        sql = """"
+        SELECT dataTime,text  
+            FROM flomo_data 
+            WHERE text IS NOT NULL AND text <> '' 
+            ORDER BY dataTime desc;
+        """
+        return self.db.query(sql)
+
+
+
 if __name__ == "__main__":
     db = SQLite_util(app_config.SQLitePath)
     controllerSelectSQLite = controllerSelectSQLite(db)

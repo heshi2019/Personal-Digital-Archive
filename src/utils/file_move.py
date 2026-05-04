@@ -251,6 +251,71 @@ class file_move:
                     except Exception as e:
                         raise RuntimeError(f"移动文件失败: {file_path}") from e
 
+    def rename_and_move_file(
+            self,
+            source_dir: str,
+            target_dir: str,
+            match_pattern: str,
+            new_full_name: str
+    ) -> bool:
+        """
+        根据模糊匹配规则找到源文件夹中的文件，重命名并移动到目标文件夹（覆盖已存在的目标文件）
+
+        Args:
+            source_dir: 源文件夹路径（仅遍历当前层级）
+            target_dir: 目标文件夹路径
+            match_pattern: 模糊匹配规则（如 "QianJi_日常生活*"）
+            new_full_name: 新的完整文件名（含后缀，如 "qianji.json"）
+
+        Returns:
+            bool: 操作成功返回 True，失败返回 False
+        """
+        try:
+            # 1. 校验源文件夹是否存在
+            if not os.path.isdir(source_dir):
+                print(f"错误：源文件夹不存在 - {source_dir}")
+                return False
+
+            # 2. 确保目标文件夹存在（不存在则创建）
+            os.makedirs(target_dir, exist_ok=True)
+
+            # 3. 遍历源文件夹当前层级，匹配符合规则的文件
+            matched_files = []
+            for filename in os.listdir(source_dir):
+                file_path = os.path.join(source_dir, filename)
+                # 只处理文件（跳过子文件夹）
+                if os.path.isfile(file_path) and fnmatch.fnmatch(filename, match_pattern):
+                    matched_files.append(file_path)
+
+            # 4. 处理匹配结果
+            if len(matched_files) == 0:
+                print(f"警告：未找到匹配规则 '{match_pattern}' 的文件")
+                return False
+            elif len(matched_files) > 1:
+                print(f"警告：找到多个匹配文件，仅处理第一个 - {matched_files}")
+
+            # 5. 拼接源文件路径和目标文件路径
+            source_file = matched_files[0]
+            target_file = os.path.join(target_dir, new_full_name)
+
+            # 6. 执行移动并重命名操作（覆盖已存在的目标文件）
+            # 先删除已存在的目标文件（如果是文件夹会报错，符合预期）
+            if os.path.exists(target_file):
+                if os.path.isfile(target_file):
+                    os.remove(target_file)
+                    print(f"提示：目标文件已存在，已删除旧文件 - {target_file}")
+                else:
+                    print(f"错误：目标路径存在但不是文件 - {target_file}")
+                    return False
+
+            shutil.move(source_file, target_file)
+            print(f"成功：文件已移动并重命名（覆盖模式） - 源：{source_file} -> 目标：{target_file}")
+            return True
+
+        except Exception as e:
+            print(f"错误：操作失败 - {str(e)}")
+            return False
+
 
 # 示例使用
 if __name__ == "__main__":

@@ -162,3 +162,24 @@ def get_daily_registered_users():
     if not rows:
         raise HTTPException(status_code=404, detail="not found")
     return rows
+
+@app.get("/api/qianji")
+def get_qianji():
+    """
+    按日期统计每天的钱数变化
+    """
+    rows = controllerSelectSQLite.get_qianji()
+    if not rows:
+        raise HTTPException(status_code=404, detail="not found")
+    return rows
+
+@app.get("/api/flomo")
+def get_flomo():
+    """
+    按日期统计每天的钱数变化
+    """
+    rows = controllerSelectSQLite.get_flomo()
+    if not rows:
+        raise HTTPException(status_code=404, detail="not found")
+    return rows
+
