@@ -42,6 +42,127 @@ python src/Main_Execution_In.py
 python src/Controller_Api_Run.py
 ```
 
+# qianji collector
+
+钱迹个人数据采集脚本。日常只需要运行 `qianji_main.py`，它会先检查 token，必要时自动登录获取 token，然后同步钱迹数据并导出为项目统一格式。
+
+## 涉及文件
+
+- `src/Script/Script_API/qianji_token.py`: 登录、保存 token、按需刷新 token。
+- `src/Script/Script_API/qianji_api.py`: 调用钱迹同步 API，处理全量/增量同步和同步游标。
+- `src/Script/Script_Repeat/qianji_main.py`: 主入口，串起 token、API 同步、Data_Star 原始数据输出和 Data_End 最终数据输出。
+
+## token 与状态文件
+
+- `src/config/qianji_token.json`: 钱迹登录 token 文件，包含账号授权信息，属于敏感配置，不应提交到 Git。
+- `src/config/qianji_state/state/sync_cursor.json`: 增量同步游标。`--mode incremental` 会读取这里的 `lasttimes`，只拉取上次同步后的变更；`--mode full` 不读取游标，会重新拉取全量数据。
+
+## 常用命令
+
+首次运行或 token 失效时，直接用 main 登录并同步：
+
+```powershell
+python -B .\src\Script\Script_Repeat\qianji_main.py --mode full --account 手机号 --password 密码
+```
+
+如果不想把密码写在命令里，可以只传账号，脚本会在终端提示输入密码：
+
+```powershell
+python -B .\src\Script\Script_Repeat\qianji_main.py --mode full --account 手机号
+```
+
+已有可用 token 后，日常增量同步：
+
+```powershell
+python -B .\src\Script\Script_Repeat\qianji_main.py --mode incremental
+```
+
+只检查当前 token：
+
+```powershell
+python -B .\src\Script\Script_API\qianji_token.py show --json
+```
+
+## 输出文件
+
+最终数据会固定输出到：
+
+```text
+src/data/Data_End/qianji.json
+```
+
+原始同步数据和报告会输出到：
+
+```text
+src/data/Data_Star/qianji_raw_bills.json
+src/data/Data_Star/qianji_deletes.json
+src/data/Data_Star/qianji_export_report.json
+```
+
+`Data_End/qianji.json` 用于后续统一导入和展示；`Data_Star` 中的文件保留原始账单、删除记录和导出报告，方便排查接口返回和二次处理。
+
+# WeRead collector
+
+微信读书个人数据采集脚本，用于拉取有笔记或划线的书籍数据，并整理成项目统一的最终 JSON。
+
+## 涉及文件
+
+- `src/Script/Script_API/weread_cookie.py`: 微信读书 cookie 管理，负责读取、刷新、校验 cookie；cookie 不可用时会尝试扫码登录。
+- `src/Script/Script_API/weread_api_client.py`: 微信读书 API 客户端，封装 notebook、书籍信息、划线、评论、目录、阅读进度等接口。
+- `src/Script/Script_Repeat/Weread.py`: 主运行脚本，串起 cookie、API 请求、原始数据保存和最终数据生成。
+
+## cookie 文件
+
+- `src/config/weread_cookie.json`: 微信读书登录 cookie 文件，属于敏感配置，不应提交到 Git。
+
+脚本运行时会先检查这个 cookie；如果 cookie 不存在或失效，会尝试打开浏览器进行扫码登录，登录成功后自动保存到这个文件。
+
+也就是说，登录检查、cookie 刷新和扫码登录已经融合在 `Weread.py` 的运行流程里。第一次运行或 cookie 过期时，直接执行微信读书同步命令即可，不需要单独运行 `weread_cookie.py`。唯一前提是当前环境允许 Playwright 打开浏览器；如果浏览器进程被权限限制拦截，需要在允许启动浏览器的环境中重新运行。
+
+## 常用命令
+
+运行微信读书同步：
+
+```powershell
+python -B .\src\Script\Script_Repeat\Weread.py
+```
+
+脚本默认执行全量同步：读取当前账号下所有有笔记或划线的书籍，逐本同步书籍信息、划线、想法、章节目录和阅读进度。
+
+如果只想在代码里调用某一本书，可以调用 `main(book_id="书籍ID")` 或 `full_sync(book_id="书籍ID")`。
+
+## 输出文件
+
+最终整理后的微信读书数据会输出到：
+
+```text
+src/data/Data_End/weread_1.json
+```
+
+这个文件会按每本书的 `LastDay` 降序排列，最近阅读的书排在前面。
+
+原始接口返回会输出到：
+
+```text
+src/data/Data_Star/weread/notebooks.txt
+src/data/Data_Star/weread/raw/<book_id>/reader_url.txt
+src/data/Data_Star/weread/raw/<book_id>/book.txt
+src/data/Data_Star/weread/raw/<book_id>/bookmarks.txt
+src/data/Data_Star/weread/raw/<book_id>/reviews.txt
+src/data/Data_Star/weread/raw/<book_id>/chapters.txt
+src/data/Data_Star/weread/raw/<book_id>/progress.txt
+src/data/Data_Star/weread/raw/<book_id>/readinfo.txt
+```
+
+`Data_End/weread_1.json` 用于后续统一导入和展示；`Data_Star/weread` 中保留每个接口的原始返回，方便排查和二次处理。
+
+## 同步模式
+
+- `full_sync()`: 全量模式，重新请求所有目标书籍并重建最终数据。
+- `incremental_sync()`: 增量合并模式，会读取已有 `src/data/Data_End/weread_1.json`，只追加新书、新划线/笔记和新目录项，不删除已有内容，也不覆盖已有字段值。
+
+当前直接运行 `Weread.py` 时默认走 `main()`，也就是 `full_sync()`。
+
 
 ### 前端
 ```angular2html
