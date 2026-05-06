@@ -41,6 +41,7 @@ def save_text(output_dir: Path, interface_name: str, data: Any) -> Path:
 
 def save_book_all_data(data: Any) -> Path:
     DATA_END_WEREAD_FILE.parent.mkdir(parents=True, exist_ok=True)
+    data = sort_book_all_data_by_last_day(data)
     if isinstance(data, str):
         content = data
     else:
@@ -52,6 +53,32 @@ def save_book_all_data(data: Any) -> Path:
 
 def load_json_file(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def parse_sort_time(value: Any) -> float:
+    if not value:
+        return float("-inf")
+
+    if isinstance(value, (int, float)):
+        return float(value)
+
+    try:
+        return datetime.strptime(str(value), "%Y-%m-%d %H:%M:%S").timestamp()
+    except ValueError:
+        return float("-inf")
+
+
+def sort_book_all_data_by_last_day(data: Any) -> Any:
+    if not isinstance(data, dict):
+        return data
+
+    def sort_key(item: Tuple[str, Any]) -> float:
+        book_data = item[1]
+        if not isinstance(book_data, dict):
+            return float("-inf")
+        return parse_sort_time(book_data.get("LastDay"))
+
+    return dict(sorted(data.items(), key=sort_key, reverse=True))
 
 
 def safe_path_name(value: Any) -> str:
