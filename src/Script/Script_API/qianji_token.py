@@ -2,6 +2,7 @@ import argparse
 import hashlib
 import getpass
 import json
+import os
 import secrets
 import sys
 import time
@@ -13,7 +14,6 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
 
-APP_ID = "wx2a38ff386cea87ab"
 DEFAULT_HOST = "https://api.qianjiapp.com/"
 DEFAULT_VERSION_CODE = "405"
 DEFAULT_VERSION_NAME = "4.2.2"
@@ -23,6 +23,14 @@ ENCREQID_KEY = "michaeljackson"
 REQUEST_TIME_OFFSET = (0x8A9 << 12) + 0x127
 SRC_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_TOKEN_FILE = SRC_ROOT / "config" / "qianji_token.json"
+
+if str(SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(SRC_ROOT))
+
+try:
+    from config.configClass import app_config
+except Exception:
+    app_config = None
 
 
 class ScriptError(RuntimeError):
@@ -146,6 +154,13 @@ def format_qianji_error(data):
     return f"Qianji error ec={data.get('ec')} msg={msg} data={data.get('data')}"
 
 
+def get_app_id():
+    config_app_id = ""
+    if app_config is not None:
+        config_app_id = str(getattr(app_config.qianji, "app_id", "") or "")
+    return os.getenv("QIANJI_APP_ID") or config_app_id
+
+
 def wait_for_wechat_code(redirect_uri, state):
     parsed = urllib.parse.urlparse(redirect_uri)
     if parsed.hostname not in ("127.0.0.1", "localhost"):
@@ -175,9 +190,12 @@ def wait_for_wechat_code(redirect_uri, state):
 
 
 def open_wechat_qr_and_wait(redirect_uri):
+    app_id = get_app_id()
+    if not app_id:
+        raise ScriptError("Missing Qianji WeChat app_id. Set Qianji.app_id in src/config/config.yaml.")
     state = secrets.token_hex(12)
     params = {
-        "appid": APP_ID,
+        "appid": app_id,
         "redirect_uri": redirect_uri,
         "response_type": "code",
         "scope": "snsapi_login",

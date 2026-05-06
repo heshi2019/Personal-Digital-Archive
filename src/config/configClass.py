@@ -31,6 +31,7 @@ class FlymeConfig:
 class QianjiConfig:
     cookie: str
     path: str
+    app_id: str
 
 @dataclass(init=False)  # 关键：禁用自动生成的__init__
 # @dataclass装饰的类会自动生成__init__方法，该方法要求必须传入所有字段的参数

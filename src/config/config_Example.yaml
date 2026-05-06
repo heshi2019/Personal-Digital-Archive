@@ -35,6 +35,9 @@ Zhangyue:
   cookie: ""
 Qianji:
   cookie: ""
+  path: "data/Manual_Import_Data/qianji"
+  # 钱迹微信登录使用的微信开放平台 AppID；真实值只写入 config.yaml，不要提交到 Git。
+  app_id: ""
 
 
 # 需要扫描的物理目录（示例，请按实际环境修改）
